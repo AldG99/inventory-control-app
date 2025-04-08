@@ -132,8 +132,11 @@ const ProductDetailScreen = ({ route, navigation }) => {
  quantity: quantityNumber,
  };
 
+ // Verificar que image sea una URI válida antes de pasarla
+ const imageToUpload = image && typeof image === 'string' ? image : null;
+
  // Actualizar el producto en Firestore
- await updateProduct(productId, productData, image);
+ await updateProduct(productId, productData, imageToUpload);
 
  Alert.alert('Éxito', 'Producto actualizado correctamente', [
  { text: 'OK' },
