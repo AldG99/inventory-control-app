@@ -36,7 +36,6 @@ yarn-error.*
 *.tsbuildinfo
 
 # firebase
-**/app/constants/firebaseConfig.js
 **/app/services/firebaseService.js
 
 # collections

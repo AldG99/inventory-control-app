@@ -18,6 +18,8 @@ import SalesScreen from '../screens/SalesScreen';
 import SalesHistoryScreen from '../screens/SalesHistoryScreen';
 import ReportsScreen from '../screens/ReportsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+// Importar la nueva pantalla de análisis avanzado
+import AnalyticsScreen from '../screens/AnalyticsScreen';
 
 import colors from '../constants/colors';
 
@@ -112,6 +114,32 @@ const SalesNavigator = () => (
   </Stack.Navigator>
 );
 
+// Navegador de reportes y análisis
+const ReportsNavigator = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerStyle: {
+        backgroundColor: colors.primary,
+      },
+      headerTintColor: colors.white,
+      headerTitleStyle: {
+        fontWeight: 'bold',
+      },
+    }}
+  >
+    <Stack.Screen
+      name="ReportsDashboard"
+      component={ReportsScreen}
+      options={{ title: 'Reportes' }}
+    />
+    <Stack.Screen
+      name="Analytics"
+      component={AnalyticsScreen}
+      options={{ title: 'Análisis Avanzado' }}
+    />
+  </Stack.Navigator>
+);
+
 // Navegador principal de la aplicación
 const MainNavigator = () => (
   <Tab.Navigator
@@ -127,6 +155,8 @@ const MainNavigator = () => (
           iconName = focused ? 'cart' : 'cart-outline';
         } else if (route.name === 'Reports') {
           iconName = focused ? 'bar-chart' : 'bar-chart-outline';
+        } else if (route.name === 'Analytics') {
+          iconName = focused ? 'analytics' : 'analytics-outline';
         } else if (route.name === 'Settings') {
           iconName = focused ? 'settings' : 'settings-outline';
         }
@@ -161,8 +191,13 @@ const MainNavigator = () => (
     />
     <Tab.Screen
       name="Reports"
-      component={ReportsScreen}
-      options={{ title: 'Reportes' }}
+      component={ReportsNavigator}
+      options={{ headerShown: false, title: 'Reportes' }}
+    />
+    <Tab.Screen
+      name="Analytics"
+      component={AnalyticsScreen}
+      options={{ title: 'Análisis' }}
     />
     <Tab.Screen
       name="Settings"
