@@ -1,7 +1,39 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  Dimensions,
+  PixelRatio,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import colors from '../../constants/colors';
+
+// Dimensiones y utilidades responsive
+const { width, height } = Dimensions.get('window');
+
+const wp = percentage => {
+  const value = (percentage * width) / 100;
+  return Math.round(PixelRatio.roundToNearestPixel(value));
+};
+
+const hp = percentage => {
+  const value = (percentage * height) / 100;
+  return Math.round(PixelRatio.roundToNearestPixel(value));
+};
+
+// Colores modernos y minimalistas
+const colors = {
+  primary: '#6C63FF', // Violeta moderno
+  secondary: '#F0F0F0', // Gris claro
+  danger: '#FF6B6B', // Rojo suave
+  success: '#4CAF50', // Verde
+  white: '#FFFFFF',
+  text: '#333333',
+  textLight: '#767676',
+  disabled: '#D1D1D1',
+};
 
 /**
  * Componente de botón reutilizable con diferentes variantes
@@ -36,7 +68,7 @@ const Button = ({
   // Determinar estilos según variante
   const getButtonStyle = () => {
     if (disabled) return styles.disabledButton;
-   
+
     switch (variant) {
       case 'secondary':
         return styles.secondaryButton;
@@ -55,7 +87,7 @@ const Button = ({
   // Determinar estilos de texto según variante
   const getTextStyle = () => {
     if (disabled) return styles.disabledButtonText;
-   
+
     switch (variant) {
       case 'outline':
         return styles.outlineButtonText;
@@ -96,13 +128,13 @@ const Button = ({
 
   // Determinar color del icono
   const getIconColor = () => {
-    if (disabled) return colors.gray;
-   
+    if (disabled) return colors.textLight;
+
     switch (variant) {
       case 'outline':
         return colors.primary;
       case 'secondary':
-        return colors.white;
+        return colors.text;
       case 'danger':
         return colors.white;
       case 'success':
@@ -120,7 +152,7 @@ const Button = ({
         getButtonStyle(),
         getSizeStyle(),
         fullWidth && styles.fullWidthButton,
-        style
+        style,
       ]}
       onPress={onPress}
       disabled={disabled || loading}
@@ -132,33 +164,27 @@ const Button = ({
           color={variant === 'outline' ? colors.primary : colors.white}
         />
       ) : (
-        <>
+        <View style={styles.contentContainer}>
           {iconName && iconPosition === 'left' && (
             <Ionicons
               name={iconName}
-              size={size === 'small' ? 16 : size === 'large' ? 24 : 20}
+              size={size === 'small' ? wp(4) : size === 'large' ? wp(6) : wp(5)}
               color={getIconColor()}
               style={styles.leftIcon}
             />
           )}
-          <Text
-            style={[
-              getTextStyle(),
-              getTextSizeStyle(),
-              textStyle
-            ]}
-          >
+          <Text style={[getTextStyle(), getTextSizeStyle(), textStyle]}>
             {title}
           </Text>
           {iconName && iconPosition === 'right' && (
             <Ionicons
               name={iconName}
-              size={size === 'small' ? 16 : size === 'large' ? 24 : 20}
+              size={size === 'small' ? wp(4) : size === 'large' ? wp(6) : wp(5)}
               color={getIconColor()}
               style={styles.rightIcon}
             />
           )}
-        </>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -166,20 +192,29 @@ const Button = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 8,
-    flexDirection: 'row',
-    justifyContent: 'center',
+    borderRadius: wp(2),
     alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: wp(0.5) },
+    shadowOpacity: 0.1,
+    shadowRadius: wp(1),
+  },
+  contentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryButton: {
     backgroundColor: colors.primary,
   },
   secondaryButton: {
-    backgroundColor: colors.textLight,
+    backgroundColor: colors.secondary,
   },
   outlineButton: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
+    borderWidth: wp(0.3),
     borderColor: colors.primary,
   },
   dangerButton: {
@@ -189,19 +224,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success,
   },
   disabledButton: {
-    backgroundColor: colors.grayLight,
+    backgroundColor: colors.disabled,
   },
   smallButton: {
-    height: 36,
-    paddingHorizontal: 12,
+    height: hp(4.5),
+    paddingHorizontal: wp(3),
   },
   mediumButton: {
-    height: 48,
-    paddingHorizontal: 16,
+    height: hp(6),
+    paddingHorizontal: wp(4),
   },
   largeButton: {
-    height: 56,
-    paddingHorizontal: 24,
+    height: hp(7),
+    paddingHorizontal: wp(6),
   },
   fullWidthButton: {
     width: '100%',
@@ -217,23 +252,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   disabledButtonText: {
-    color: colors.text,
+    color: colors.textLight,
   },
   smallButtonText: {
-    fontSize: 14,
+    fontSize: wp(3.5),
   },
   mediumButtonText: {
-    fontSize: 16,
+    fontSize: wp(4),
   },
   largeButtonText: {
-    fontSize: 18,
+    fontSize: wp(4.5),
   },
   leftIcon: {
-    marginRight: 8,
+    marginRight: wp(2),
   },
   rightIcon: {
-    marginLeft: 8,
-  }
+    marginLeft: wp(2),
+  },
 });
 
 export default Button;

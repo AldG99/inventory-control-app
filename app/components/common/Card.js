@@ -1,6 +1,35 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import colors from '../../constants/colors';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Dimensions,
+  PixelRatio,
+} from 'react-native';
+
+// Dimensiones y utilidades responsive
+const { width, height } = Dimensions.get('window');
+
+const wp = percentage => {
+  const value = (percentage * width) / 100;
+  return Math.round(PixelRatio.roundToNearestPixel(value));
+};
+
+const hp = percentage => {
+  const value = (percentage * height) / 100;
+  return Math.round(PixelRatio.roundToNearestPixel(value));
+};
+
+// Colores modernos y minimalistas
+const colors = {
+  white: '#FFFFFF',
+  text: '#333333',
+  textLight: '#767676',
+  border: '#F0F0F0',
+  grayLight: '#F5F5F5',
+  primary: '#6C63FF',
+};
 
 /**
  * Componente Card para mostrar contenido en forma de tarjeta
@@ -51,90 +80,82 @@ const Card = ({
  * Componente de cabecera para la tarjeta (opcional)
  */
 Card.Header = ({ children, style }) => (
-  <View style={[styles.header, style]}>
-    {children}
-  </View>
+  <View style={[styles.header, style]}>{children}</View>
 );
 
 /**
  * Componente de cuerpo para la tarjeta (opcional)
  */
 Card.Body = ({ children, style }) => (
-  <View style={[styles.body, style]}>
-    {children}
-  </View>
+  <View style={[styles.body, style]}>{children}</View>
 );
 
 /**
  * Componente de pie para la tarjeta (opcional)
  */
 Card.Footer = ({ children, style }) => (
-  <View style={[styles.footerContainer, style]}>
-    {children}
-  </View>
+  <View style={[styles.footerContainer, style]}>{children}</View>
 );
 
 /**
  * Componente para mostrar un párrafo en la tarjeta
  */
 Card.Text = ({ children, style }) => (
-  <Text style={[styles.text, style]}>
-    {children}
-  </Text>
+  <Text style={[styles.text, style]}>{children}</Text>
 );
 
 const styles = StyleSheet.create({
   touchable: {
-    borderRadius: 12,
-    marginBottom: 16,
+    borderRadius: wp(3),
+    marginBottom: hp(2),
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 12,
+    borderRadius: wp(3),
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: wp(0.5) },
+    shadowOpacity: 0.08,
+    shadowRadius: wp(2),
     elevation: 2,
-    marginBottom: 16,
+    marginBottom: hp(2),
     overflow: 'hidden',
   },
   title: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: wp(4.5),
+    fontWeight: '600',
     color: colors.text,
-    padding: 16,
+    padding: wp(4),
     borderBottomWidth: 1,
-    borderBottomColor: colors.grayLight,
+    borderBottomColor: colors.border,
   },
   content: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: wp(4),
+    paddingVertical: wp(4),
   },
   footer: {
-    padding: 16,
+    padding: wp(4),
     borderTopWidth: 1,
-    borderTopColor: colors.grayLight,
+    borderTopColor: colors.border,
   },
   header: {
-    marginBottom: 12,
+    marginBottom: hp(1.5),
   },
   body: {
-    marginBottom: 12,
+    marginBottom: hp(1.5),
   },
   footerContainer: {
-    marginTop: 12,
-    paddingTop: 12,
+    marginTop: hp(1.5),
+    paddingTop: hp(1.5),
     borderTopWidth: 1,
-    borderTopColor: colors.grayLight,
+    borderTopColor: colors.border,
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
   text: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.text,
-    lineHeight: 20,
-  }
+    lineHeight: hp(2.5),
+  },
 });
 
 export default Card;
