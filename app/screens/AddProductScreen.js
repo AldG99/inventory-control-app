@@ -13,11 +13,14 @@ import {
   Platform,
   Modal,
   FlatList,
+  Dimensions,
+  PixelRatio,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { InventoryContext } from '../context/InventoryContext';
+import { wp, hp, isTablet, dimensions } from '../utils/responsive';
 import colors from '../constants/colors';
 
 const AddProductScreen = ({ navigation }) => {
@@ -219,7 +222,7 @@ const AddProductScreen = ({ navigation }) => {
       onPress={() => selectCategory(item.name)}
     >
       <Text style={styles.categoryName}>{item.name}</Text>
-      <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
+      <Ionicons name="chevron-forward" size={wp(5)} color={colors.textLight} />
     </TouchableOpacity>
   );
 
@@ -228,126 +231,135 @@ const AddProductScreen = ({ navigation }) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? hp(10) : 0}
       >
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.formContainer}>
-            {/* Sección de imagen */}
-            <View style={styles.imageSection}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Añadir Producto</Text>
+        </View>
+
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Sección de imagen */}
+          <View style={styles.imageSection}>
+            <TouchableOpacity style={styles.imageContainer} onPress={pickImage}>
+              {image ? (
+                <Image source={{ uri: image }} style={styles.productImage} />
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <Ionicons
+                    name="camera-outline"
+                    size={wp(10)}
+                    color={colors.textMuted}
+                  />
+                  <Text style={styles.imagePlaceholderText}>Añadir imagen</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Información básica */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Información Básica</Text>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Nombre del Producto *</Text>
+              <TextInput
+                style={styles.input}
+                value={name}
+                onChangeText={setName}
+                placeholder="Nombre del producto"
+                placeholderTextColor={colors.textMuted}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>SKU / Código</Text>
+              <TextInput
+                style={styles.input}
+                value={sku}
+                onChangeText={setSku}
+                placeholder="Código único del producto (opcional)"
+                placeholderTextColor={colors.textMuted}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Descripción</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Descripción del producto"
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                placeholderTextColor={colors.textMuted}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Categoría</Text>
               <TouchableOpacity
-                style={styles.imageContainer}
-                onPress={pickImage}
+                style={styles.categorySelector}
+                onPress={() => setShowCategoryModal(true)}
               >
-                {image ? (
-                  <Image source={{ uri: image }} style={styles.productImage} />
-                ) : (
-                  <View style={styles.imagePlaceholder}>
-                    <Ionicons
-                      name="camera-outline"
-                      size={40}
-                      color={colors.textLight}
-                    />
-                    <Text style={styles.imagePlaceholderText}>
-                      Añadir imagen
-                    </Text>
-                  </View>
-                )}
+                <TextInput
+                  style={styles.categoryInput}
+                  value={category}
+                  placeholder="Seleccionar categoría"
+                  editable={false}
+                  placeholderTextColor={colors.textMuted}
+                />
+                <Ionicons
+                  name="chevron-down"
+                  size={wp(5)}
+                  color={colors.textLight}
+                />
               </TouchableOpacity>
             </View>
+          </View>
 
-            {/* Información básica */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Información Básica</Text>
+          {/* Precios y Stock */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Precios y Stock</Text>
 
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Nombre del Producto *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="Nombre del producto"
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>SKU / Código</Text>
-                <TextInput
-                  style={styles.input}
-                  value={sku}
-                  onChangeText={setSku}
-                  placeholder="Código único del producto (opcional)"
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Descripción</Text>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  value={description}
-                  onChangeText={setDescription}
-                  placeholder="Descripción del producto"
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Categoría</Text>
-                <TouchableOpacity
-                  style={styles.categorySelector}
-                  onPress={() => setShowCategoryModal(true)}
-                >
-                  <TextInput
-                    style={styles.categoryInput}
-                    value={category}
-                    placeholder="Seleccionar categoría"
-                    editable={false}
-                  />
-                  <Ionicons
-                    name="chevron-down"
-                    size={20}
-                    color={colors.textLight}
-                  />
-                </TouchableOpacity>
-              </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Precio de Venta *</Text>
+              <TextInput
+                style={styles.input}
+                value={price}
+                onChangeText={setPrice}
+                placeholder="0.00"
+                keyboardType="decimal-pad"
+                placeholderTextColor={colors.textMuted}
+              />
             </View>
 
-            {/* Precios y Stock */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Precios y Stock</Text>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Costo *</Text>
+              <TextInput
+                style={styles.input}
+                value={cost}
+                onChangeText={setCost}
+                placeholder="0.00"
+                keyboardType="decimal-pad"
+                placeholderTextColor={colors.textMuted}
+              />
+            </View>
 
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Precio de Venta *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={price}
-                  onChangeText={setPrice}
-                  placeholder="0.00"
-                  keyboardType="decimal-pad"
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Costo *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={cost}
-                  onChangeText={setCost}
-                  placeholder="0.00"
-                  keyboardType="decimal-pad"
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Cantidad Inicial *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={quantity}
-                  onChangeText={setQuantity}
-                  placeholder="0"
-                  keyboardType="number-pad"
-                />
-              </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Cantidad Inicial *</Text>
+              <TextInput
+                style={styles.input}
+                value={quantity}
+                onChangeText={setQuantity}
+                placeholder="0"
+                keyboardType="number-pad"
+                placeholderTextColor={colors.textMuted}
+              />
             </View>
           </View>
         </ScrollView>
@@ -392,25 +404,30 @@ const AddProductScreen = ({ navigation }) => {
                     setCategorySearch('');
                   }}
                 >
-                  <Ionicons name="close" size={24} color={colors.text} />
+                  <Ionicons name="close" size={wp(6)} color={colors.text} />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.searchContainer}>
                 <View style={styles.searchBar}>
-                  <Ionicons name="search" size={20} color={colors.textLight} />
+                  <Ionicons
+                    name="search"
+                    size={wp(5)}
+                    color={colors.textLight}
+                  />
                   <TextInput
                     style={styles.searchInput}
                     value={categorySearch}
                     onChangeText={setCategorySearch}
                     placeholder="Buscar o crear categoría"
                     autoFocus
+                    placeholderTextColor={colors.textMuted}
                   />
                   {categorySearch ? (
                     <TouchableOpacity onPress={() => setCategorySearch('')}>
                       <Ionicons
                         name="close-circle"
-                        size={20}
+                        size={wp(5)}
                         color={colors.textLight}
                       />
                     </TouchableOpacity>
@@ -428,7 +445,7 @@ const AddProductScreen = ({ navigation }) => {
                   >
                     <Ionicons
                       name="add-circle"
-                      size={20}
+                      size={wp(5)}
                       color={colors.primary}
                     />
                     <Text style={styles.addNewCategoryText}>
@@ -468,29 +485,44 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  header: {
+    padding: wp(4),
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  headerTitle: {
+    fontSize: wp(5),
+    fontWeight: 'bold',
+    color: colors.text,
+  },
   scrollView: {
     flex: 1,
   },
-  formContainer: {
-    padding: 16,
+  scrollContent: {
+    padding: wp(4),
+    paddingBottom: hp(12),
   },
   imageSection: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: hp(2.5),
   },
   imageContainer: {
-    width: 150,
-    height: 150,
-    borderRadius: 12,
+    width: isTablet() ? wp(30) : wp(50),
+    height: isTablet() ? wp(30) : wp(50),
+    borderRadius: dimensions.borderRadiusMedium,
     overflow: 'hidden',
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.border,
     borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   productImage: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
   imagePlaceholder: {
     width: '100%',
@@ -499,102 +531,115 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   imagePlaceholderText: {
-    marginTop: 8,
+    marginTop: hp(1),
     color: colors.textLight,
+    fontSize: wp(3.5),
   },
   section: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(4),
+    marginBottom: hp(2.5),
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: dimensions.shadowOffsetHeight },
+    shadowOpacity: dimensions.shadowOpacityLight,
+    shadowRadius: dimensions.shadowRadius,
     elevation: 2,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: wp(4.5),
     fontWeight: 'bold',
     color: colors.text,
-    marginBottom: 16,
+    marginBottom: hp(2),
   },
   inputContainer: {
-    marginBottom: 16,
+    marginBottom: hp(2),
   },
   inputLabel: {
-    fontSize: 16,
-    marginBottom: 8,
+    fontSize: wp(4),
+    marginBottom: hp(1),
     color: colors.text,
+    fontWeight: '500',
   },
   input: {
-    height: 50,
     backgroundColor: colors.background,
-    borderRadius: 8,
-    paddingHorizontal: 16,
+    borderRadius: dimensions.borderRadiusMedium,
+    paddingHorizontal: wp(3),
+    paddingVertical: isTablet() ? hp(1.5) : hp(1.8),
     borderWidth: 1,
     borderColor: colors.border,
-    fontSize: 16,
+    fontSize: wp(4),
   },
   textArea: {
-    height: 100,
+    minHeight: hp(15),
     textAlignVertical: 'top',
-    paddingTop: 12,
+    paddingTop: hp(1.5),
   },
   categorySelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 50,
     backgroundColor: colors.background,
-    borderRadius: 8,
+    borderRadius: dimensions.borderRadiusMedium,
     borderWidth: 1,
     borderColor: colors.border,
-    paddingHorizontal: 16,
+    paddingRight: wp(3),
   },
   categoryInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: wp(4),
+    paddingHorizontal: wp(3),
+    paddingVertical: isTablet() ? hp(1.5) : hp(1.8),
     color: colors.text,
   },
   actionButtons: {
     flexDirection: 'row',
-    padding: 16,
+    padding: wp(4),
     backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: colors.border,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   cancelButton: {
     flex: 1,
-    height: 50,
-    borderRadius: 8,
+    height: hp(6.5),
+    borderRadius: dimensions.borderRadiusMedium,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: wp(2),
     borderWidth: 1,
     borderColor: colors.border,
   },
   cancelButtonText: {
     color: colors.text,
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: '500',
   },
   saveButton: {
     flex: 2,
-    height: 50,
+    height: hp(6.5),
     backgroundColor: colors.primary,
-    borderRadius: 8,
+    borderRadius: dimensions.borderRadiusMedium,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
+    marginLeft: wp(2),
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: wp(0.5) },
+    shadowOpacity: 0.2,
+    shadowRadius: wp(1),
+    elevation: 3,
   },
   saveButtonDisabled: {
-    backgroundColor: colors.gray,
+    backgroundColor: colors.textMuted,
   },
   saveButtonText: {
     color: colors.white,
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: wp(4),
+    fontWeight: '600',
   },
+
   // Estilos para el modal
   modalOverlay: {
     flex: 1,
@@ -603,81 +648,80 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: 20,
-    height: '70%',
+    borderTopLeftRadius: dimensions.borderRadiusLarge,
+    borderTopRightRadius: dimensions.borderRadiusLarge,
+    height: isTablet() ? '60%' : '70%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: wp(4),
     borderBottomWidth: 1,
-    borderBottomColor: colors.grayLight,
+    borderBottomColor: colors.border,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: wp(4.5),
     fontWeight: 'bold',
     color: colors.text,
   },
   closeButton: {
-    padding: 4,
+    padding: wp(1),
   },
   searchContainer: {
-    padding: 16,
+    padding: wp(4),
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.background,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    height: 44,
+    borderRadius: dimensions.borderRadiusMedium,
+    paddingHorizontal: wp(3),
+    height: hp(6),
     borderWidth: 1,
     borderColor: colors.border,
   },
   searchInput: {
     flex: 1,
-    marginLeft: 8,
-    fontSize: 16,
+    marginLeft: wp(2),
+    fontSize: wp(4),
     color: colors.text,
   },
   categoriesList: {
-    paddingHorizontal: 16,
+    paddingHorizontal: wp(4),
   },
   categoryItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.grayLight,
+    paddingVertical: hp(2),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   categoryName: {
-    fontSize: 16,
+    fontSize: wp(4),
     color: colors.text,
   },
   addNewCategoryButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.grayLight,
-    backgroundColor: colors.primaryLight + '20',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(2),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+    backgroundColor: `${colors.primary}10`,
   },
   addNewCategoryText: {
-    marginLeft: 8,
-    fontSize: 16,
+    marginLeft: wp(2),
+    fontSize: wp(4),
     color: colors.primary,
   },
   emptyListContainer: {
-    padding: 20,
+    padding: wp(5),
     alignItems: 'center',
   },
   emptyListText: {
-    fontSize: 16,
+    fontSize: wp(4),
     color: colors.textLight,
     textAlign: 'center',
   },
