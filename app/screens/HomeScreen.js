@@ -7,6 +7,8 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  Dimensions,
+  PixelRatio,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +18,19 @@ import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../services/firebaseService';
 import COLLECTIONS from '../constants/collections';
 import colors from '../constants/colors';
+
+// Dimensiones y utilidades responsive
+const { width, height } = Dimensions.get('window');
+
+const wp = percentage => {
+  const value = (percentage * width) / 100;
+  return Math.round(PixelRatio.roundToNearestPixel(value));
+};
+
+const hp = percentage => {
+  const value = (percentage * height) / 100;
+  return Math.round(PixelRatio.roundToNearestPixel(value));
+};
 
 const HomeScreen = ({ navigation }) => {
   const { user } = useContext(AuthContext);
@@ -102,6 +117,7 @@ const HomeScreen = ({ navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
         style={styles.container}
+        contentContainerStyle={styles.contentContainer}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -122,7 +138,7 @@ const HomeScreen = ({ navigation }) => {
               navigation.navigate('Inventory', { screen: 'AddProduct' })
             }
           >
-            <Ionicons name="add" size={24} color={colors.white} />
+            <Ionicons name="add" size={wp(6)} color={colors.white} />
           </TouchableOpacity>
         </View>
 
@@ -137,7 +153,11 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={styles.cardValue}>{totalProducts}</Text>
               </View>
               <View style={styles.cardIcon}>
-                <Ionicons name="cube-outline" size={32} color={colors.white} />
+                <Ionicons
+                  name="cube-outline"
+                  size={wp(7)}
+                  color={colors.white}
+                />
               </View>
             </View>
 
@@ -151,7 +171,7 @@ const HomeScreen = ({ navigation }) => {
               <View style={styles.cardIcon}>
                 <Ionicons
                   name="layers-outline"
-                  size={32}
+                  size={wp(7)}
                   color={colors.white}
                 />
               </View>
@@ -169,7 +189,7 @@ const HomeScreen = ({ navigation }) => {
               <View style={styles.cardIcon}>
                 <Ionicons
                   name="alert-circle-outline"
-                  size={32}
+                  size={wp(7)}
                   color={colors.white}
                 />
               </View>
@@ -185,7 +205,11 @@ const HomeScreen = ({ navigation }) => {
                 </Text>
               </View>
               <View style={styles.cardIcon}>
-                <Ionicons name="cash-outline" size={32} color={colors.white} />
+                <Ionicons
+                  name="cash-outline"
+                  size={wp(7)}
+                  color={colors.white}
+                />
               </View>
             </View>
           </View>
@@ -205,7 +229,7 @@ const HomeScreen = ({ navigation }) => {
                   { backgroundColor: colors.primaryLight },
                 ]}
               >
-                <Ionicons name="list" size={24} color={colors.primary} />
+                <Ionicons name="list" size={wp(6)} color={colors.primary} />
               </View>
               <Text style={styles.quickLinkText}>Inventario</Text>
             </TouchableOpacity>
@@ -217,9 +241,9 @@ const HomeScreen = ({ navigation }) => {
               }
             >
               <View
-                style={[styles.quickLinkIcon, { backgroundColor: '#FFE8CC' }]}
+                style={[styles.quickLinkIcon, { backgroundColor: '#FFF0E0' }]}
               >
-                <Ionicons name="cart" size={24} color={colors.secondary} />
+                <Ionicons name="cart" size={wp(6)} color={colors.secondary} />
               </View>
               <Text style={styles.quickLinkText}>Nueva Venta</Text>
             </TouchableOpacity>
@@ -231,9 +255,13 @@ const HomeScreen = ({ navigation }) => {
               }
             >
               <View
-                style={[styles.quickLinkIcon, { backgroundColor: '#E5F5FF' }]}
+                style={[styles.quickLinkIcon, { backgroundColor: '#E6F2FF' }]}
               >
-                <Ionicons name="document-text" size={24} color={colors.info} />
+                <Ionicons
+                  name="document-text"
+                  size={wp(6)}
+                  color={colors.info}
+                />
               </View>
               <Text style={styles.quickLinkText}>Historial</Text>
             </TouchableOpacity>
@@ -245,7 +273,11 @@ const HomeScreen = ({ navigation }) => {
               <View
                 style={[styles.quickLinkIcon, { backgroundColor: '#E8F5E9' }]}
               >
-                <Ionicons name="bar-chart" size={24} color={colors.success} />
+                <Ionicons
+                  name="bar-chart"
+                  size={wp(6)}
+                  color={colors.success}
+                />
               </View>
               <Text style={styles.quickLinkText}>Reportes</Text>
             </TouchableOpacity>
@@ -373,59 +405,73 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 16,
+  },
+  contentContainer: {
+    padding: wp(4),
   },
   greeting: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: hp(3),
   },
   greetingText: {
-    fontSize: 24,
+    fontSize: wp(6),
     fontWeight: 'bold',
     color: colors.text,
+    marginBottom: hp(0.5),
   },
   businessText: {
-    fontSize: 16,
+    fontSize: wp(4),
     color: colors.primary,
     fontWeight: '500',
   },
   addButton: {
     backgroundColor: colors.primary,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: wp(12),
+    height: wp(12),
+    borderRadius: wp(6),
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 3,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: wp(1) },
+    shadowOpacity: 0.3,
+    shadowRadius: wp(2),
   },
   summaryContainer: {
-    marginBottom: 24,
+    marginBottom: hp(3),
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: hp(2),
   },
   summaryCard: {
     flex: 1,
     flexDirection: 'row',
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 4,
+    borderRadius: wp(3),
+    padding: wp(4),
+    marginHorizontal: wp(1),
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: wp(0.5) },
+    shadowOpacity: 0.1,
+    shadowRadius: wp(1),
   },
   cardContent: {
     flex: 1,
   },
   cardTitle: {
     color: colors.white,
-    fontSize: 14,
+    fontSize: wp(3.5),
     fontWeight: '500',
-    marginBottom: 4,
+    marginBottom: hp(0.5),
+    opacity: 0.9,
   },
   cardValue: {
     color: colors.white,
-    fontSize: 22,
+    fontSize: wp(5.5),
     fontWeight: 'bold',
   },
   cardIcon: {
@@ -434,29 +480,29 @@ const styles = StyleSheet.create({
   },
   section: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderRadius: wp(3),
+    padding: wp(4),
+    marginBottom: hp(3),
     elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: wp(0.5) },
+    shadowOpacity: 0.1,
+    shadowRadius: wp(1),
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: hp(2),
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: wp(4.5),
     fontWeight: 'bold',
     color: colors.text,
   },
   seeAllText: {
     color: colors.primary,
-    fontSize: 14,
+    fontSize: wp(3.5),
     fontWeight: '500',
   },
   quickLinks: {
@@ -466,109 +512,111 @@ const styles = StyleSheet.create({
   },
   quickLink: {
     width: '48%',
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: colors.surfaceLight,
+    borderRadius: wp(3),
+    padding: wp(4),
+    marginBottom: hp(1.5),
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.grayLight,
+    borderColor: colors.border,
   },
   quickLinkIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: wp(13),
+    height: wp(13),
+    borderRadius: wp(6.5),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: hp(1),
   },
   quickLinkText: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     fontWeight: '500',
     color: colors.text,
   },
   salesList: {
-    marginTop: 8,
+    marginTop: hp(1),
   },
   saleItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.grayLight,
+    paddingVertical: hp(1.5),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   saleInfo: {
     flex: 1,
   },
   saleId: {
-    fontSize: 15,
+    fontSize: wp(3.8),
     fontWeight: 'bold',
     color: colors.text,
-    marginBottom: 2,
+    marginBottom: hp(0.3),
   },
   saleDate: {
-    fontSize: 13,
+    fontSize: wp(3.2),
     color: colors.textLight,
-    marginBottom: 2,
+    marginBottom: hp(0.3),
   },
   saleItemsCount: {
-    fontSize: 13,
+    fontSize: wp(3.2),
     color: colors.textLight,
   },
   saleTotal: {
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: 'bold',
     color: colors.success,
   },
   loadingContainer: {
-    padding: 20,
+    padding: wp(5),
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 8,
+    marginTop: hp(1),
     color: colors.textLight,
+    fontSize: wp(3.5),
   },
   emptyState: {
-    padding: 20,
+    padding: wp(5),
     alignItems: 'center',
   },
   emptyStateText: {
     color: colors.textLight,
     textAlign: 'center',
+    fontSize: wp(3.5),
   },
   lowStockList: {
-    marginTop: 8,
+    marginTop: hp(1),
   },
   lowStockItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.grayLight,
+    paddingVertical: hp(1.5),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   productInfo: {
     flex: 1,
   },
   productName: {
-    fontSize: 15,
+    fontSize: wp(3.8),
     fontWeight: '500',
     color: colors.text,
-    marginBottom: 2,
+    marginBottom: hp(0.3),
   },
   productSku: {
-    fontSize: 13,
+    fontSize: wp(3.2),
     color: colors.textLight,
   },
   quantityContainer: {
-    marginLeft: 12,
+    marginLeft: wp(3),
   },
   quantityText: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     fontWeight: '500',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.5),
+    borderRadius: wp(1),
   },
   lowQuantity: {
     backgroundColor: '#FFF8E1',
