@@ -40,3 +40,17 @@ yarn-error.*
 
 # collections
 **/app/constants/collections.js
+
+# context
+**/app/context/AuthContext.js
+
+# collections
+**/app/constants/collections.js
+
+# context
+**/app/context/AuthContext.js
+**/app/context/InventoryContext.js
+
+# utils
+**/app/utils/analysisUtils.js
+**/app/utils/responsive.js
