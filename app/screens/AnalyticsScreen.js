@@ -9,16 +9,16 @@ import {
   FlatList,
   RefreshControl,
   Dimensions,
+  PixelRatio,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import useAnalytics from '../hooks/useAnalytics';
+import { wp, hp, isTablet, dimensions } from '../utils/responsive';
 import colors from '../constants/colors';
 import { format, isAfter } from 'date-fns';
 import { es } from 'date-fns/locale';
-
-const { width } = Dimensions.get('window');
 
 const AnalyticsScreen = () => {
   const {
@@ -36,7 +36,7 @@ const AnalyticsScreen = () => {
 
   const [activeTab, setActiveTab] = useState('predictions');
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedChart, setSelectedChart] = useState('sales'); // 'sales' or 'profit'
+  const [selectedChart, setSelectedChart] = useState('sales'); // 'sales' o 'profit'
 
   // Manejar pull-to-refresh
   const onRefresh = async () => {
@@ -83,7 +83,7 @@ const AnalyticsScreen = () => {
       datasets: [
         {
           data: chartData.map(item => item.total),
-          color: (opacity = 1) => `rgba(46, 204, 113, ${opacity})`, // Verde para datos históricos
+          color: (opacity = 1) => `rgba(108, 99, 255, ${opacity})`, // Usar color primario
           strokeWidth: 2,
         },
       ],
@@ -126,7 +126,7 @@ const AnalyticsScreen = () => {
         <View style={styles.errorContainer}>
           <Ionicons
             name="alert-circle-outline"
-            size={50}
+            size={wp(12)}
             color={colors.danger}
           />
           <Text style={styles.errorText}>{error}</Text>
@@ -166,8 +166,16 @@ const AnalyticsScreen = () => {
 
     const predictedTotal = getTotalPredictions();
 
+    // Se puede mantener como ScrollView ya que no contiene FlatList
     return (
-      <View style={styles.tabContent}>
+      <ScrollView
+        style={styles.mainContent}
+        contentContainerStyle={styles.tabContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.chartContainer}>
           <Text style={styles.chartTitle}>
             Tendencia de Ventas (Próximos 7 días)
@@ -176,17 +184,17 @@ const AnalyticsScreen = () => {
           {chartData.labels.length > 0 ? (
             <LineChart
               data={chartData}
-              width={width - 40}
-              height={220}
+              width={isTablet() ? wp(90) : wp(92)}
+              height={hp(25)}
               chartConfig={{
                 backgroundColor: colors.white,
                 backgroundGradientFrom: colors.white,
                 backgroundGradientTo: colors.white,
                 decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                color: (opacity = 1) => `rgba(108, 99, 255, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(45, 55, 72, ${opacity})`,
                 style: {
-                  borderRadius: 16,
+                  borderRadius: dimensions.borderRadiusMedium,
                 },
                 propsForDots: {
                   r: '6',
@@ -196,8 +204,8 @@ const AnalyticsScreen = () => {
               }}
               bezier
               style={{
-                marginVertical: 8,
-                borderRadius: 16,
+                marginVertical: hp(1),
+                borderRadius: dimensions.borderRadiusMedium,
               }}
             />
           ) : (
@@ -251,7 +259,7 @@ const AnalyticsScreen = () => {
         <View style={styles.infoContainer}>
           <Ionicons
             name="information-circle-outline"
-            size={24}
+            size={wp(6)}
             color={colors.textLight}
           />
           <Text style={styles.infoText}>
@@ -259,7 +267,7 @@ const AnalyticsScreen = () => {
             identificados. Actualice regularmente para mejorar la precisión.
           </Text>
         </View>
-      </View>
+      </ScrollView>
     );
   };
 
@@ -270,7 +278,7 @@ const AnalyticsScreen = () => {
         <View style={styles.emptyContainer}>
           <Ionicons
             name="checkmark-circle-outline"
-            size={60}
+            size={wp(15)}
             color={colors.success}
           />
           <Text style={styles.emptyTitle}>Inventario Saludable</Text>
@@ -281,75 +289,82 @@ const AnalyticsScreen = () => {
       );
     }
 
+    // Componente de encabezado para la FlatList
+    const RestockHeader = () => (
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>
+          Recomendaciones de Reabastecimiento
+        </Text>
+        <Text style={styles.sectionSubtitle}>
+          Basado en la tasa de venta y stock actual
+        </Text>
+      </View>
+    );
+
+    // Componente de pie para la FlatList
+    const RestockFooter = () => (
+      <View style={styles.infoContainer}>
+        <Ionicons
+          name="information-circle-outline"
+          size={wp(6)}
+          color={colors.textLight}
+        />
+        <Text style={styles.infoText}>
+          Las recomendaciones se calculan considerando el historial de ventas de
+          los últimos {selectedPeriod} días.
+        </Text>
+      </View>
+    );
+
     return (
-      <View style={styles.tabContent}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            Recomendaciones de Reabastecimiento
-          </Text>
-          <Text style={styles.sectionSubtitle}>
-            Basado en la tasa de venta y stock actual
-          </Text>
-        </View>
-
-        <FlatList
-          data={restockRecommendations}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <View
-              style={[
-                styles.restockItem,
-                item.urgency === 'high'
-                  ? styles.highUrgency
-                  : item.urgency === 'medium'
-                  ? styles.mediumUrgency
-                  : styles.lowUrgency,
-              ]}
-            >
-              <View style={styles.restockInfo}>
-                <Text style={styles.restockName}>{item.name}</Text>
-                <Text style={styles.restockSku}>SKU: {item.sku || 'N/A'}</Text>
-                <View style={styles.restockMetrics}>
-                  <Text style={styles.metricLabel}>Stock actual:</Text>
-                  <Text style={styles.metricValue}>
-                    {item.quantity} unidades
-                  </Text>
-                </View>
-                <View style={styles.restockMetrics}>
-                  <Text style={styles.metricLabel}>Ventas diarias:</Text>
-                  <Text style={styles.metricValue}>
-                    {item.dailySalesRate} unid/día
-                  </Text>
-                </View>
+      <FlatList
+        contentContainerStyle={styles.tabContent}
+        data={restockRecommendations}
+        keyExtractor={item => item.id}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListHeaderComponent={<RestockHeader />}
+        ListFooterComponent={<RestockFooter />}
+        renderItem={({ item }) => (
+          <View
+            style={[
+              styles.restockItem,
+              item.urgency === 'high'
+                ? styles.highUrgency
+                : item.urgency === 'medium'
+                ? styles.mediumUrgency
+                : styles.lowUrgency,
+            ]}
+          >
+            <View style={styles.restockInfo}>
+              <Text style={styles.restockName}>{item.name}</Text>
+              <Text style={styles.restockSku}>SKU: {item.sku || 'N/A'}</Text>
+              <View style={styles.restockMetrics}>
+                <Text style={styles.metricLabel}>Stock actual:</Text>
+                <Text style={styles.metricValue}>{item.quantity} unidades</Text>
               </View>
-
-              <View style={styles.restockAction}>
-                <Text style={styles.daysUntilOutLabel}>
-                  {item.daysUntilOutOfStock <= 0
-                    ? 'Agotado'
-                    : `${item.daysUntilOutOfStock} días\nhasta agotarse`}
-                </Text>
-                <Text style={styles.recommendedQuantity}>
-                  Reordenar: {item.recommendedQuantity} unid
+              <View style={styles.restockMetrics}>
+                <Text style={styles.metricLabel}>Ventas diarias:</Text>
+                <Text style={styles.metricValue}>
+                  {item.dailySalesRate} unid/día
                 </Text>
               </View>
             </View>
-          )}
-          ListFooterComponent={
-            <View style={styles.infoContainer}>
-              <Ionicons
-                name="information-circle-outline"
-                size={24}
-                color={colors.textLight}
-              />
-              <Text style={styles.infoText}>
-                Las recomendaciones se calculan considerando el historial de
-                ventas de los últimos {selectedPeriod} días.
+
+            <View style={styles.restockAction}>
+              <Text style={styles.daysUntilOutLabel}>
+                {item.daysUntilOutOfStock <= 0
+                  ? 'Agotado'
+                  : `${item.daysUntilOutOfStock} días\nhasta agotarse`}
+              </Text>
+              <Text style={styles.recommendedQuantity}>
+                Reordenar: {item.recommendedQuantity} unid
               </Text>
             </View>
-          }
-        />
-      </View>
+          </View>
+        )}
+      />
     );
   };
 
@@ -382,7 +397,7 @@ const AnalyticsScreen = () => {
           >
             <Ionicons
               name="cart-outline"
-              size={24}
+              size={wp(6)}
               color={
                 selectedChart === 'sales' ? colors.primary : colors.textLight
               }
@@ -406,7 +421,7 @@ const AnalyticsScreen = () => {
           >
             <Ionicons
               name="cash-outline"
-              size={24}
+              size={wp(6)}
               color={
                 selectedChart === 'profit' ? colors.primary : colors.textLight
               }
@@ -424,10 +439,10 @@ const AnalyticsScreen = () => {
       );
     };
 
-    return (
-      <View style={styles.tabContent}>
+    // Creamos un componente para el header
+    const PerformanceHeader = () => (
+      <>
         {renderPerformanceSelector()}
-
         <View style={styles.summaryCards}>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryTitle}>Ventas Totales</Text>
@@ -448,71 +463,87 @@ const AnalyticsScreen = () => {
             </Text>
           </View>
         </View>
+      </>
+    );
 
-        <View style={styles.performanceSection}>
-          <Text style={styles.performanceTitle}>
-            {selectedChart === 'sales'
-              ? 'Productos Más Vendidos'
-              : 'Productos Más Rentables'}
-          </Text>
+    // Solución: Usamos un componente con dos FlatLists separadas
+    return (
+      <FlatList
+        data={[{ id: 'performance_section' }]} // Single item lista ficticia
+        keyExtractor={item => item.id}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        renderItem={() => (
+          <View style={styles.tabContent}>
+            <PerformanceHeader />
 
-          <FlatList
-            data={selectedChart === 'sales' ? topSelling : profitable}
-            keyExtractor={item => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <View style={styles.performanceCard}>
-                <Text style={styles.performanceCardTitle} numberOfLines={2}>
-                  {item.name}
-                </Text>
-                <Text style={styles.performanceCardValue}>
-                  {selectedChart === 'sales'
-                    ? `${item.quantitySold} unid.`
-                    : `${formatCurrency(item.profit)}`}
-                </Text>
-                <Text style={styles.performanceCardSubtitle}>
-                  {selectedChart === 'sales'
-                    ? `${item.contributionToSales.toFixed(1)}% del total`
-                    : `Margen: ${item.profitMargin.toFixed(1)}%`}
-                </Text>
-              </View>
-            )}
-          />
-        </View>
+            <View style={styles.performanceSection}>
+              <Text style={styles.performanceTitle}>
+                {selectedChart === 'sales'
+                  ? 'Productos Más Vendidos'
+                  : 'Productos Más Rentables'}
+              </Text>
 
-        <View style={styles.performanceSection}>
-          <Text style={styles.performanceTitle}>
-            {selectedChart === 'sales'
-              ? 'Productos Menos Vendidos'
-              : 'Productos Menos Rentables'}
-          </Text>
+              <FlatList
+                data={selectedChart === 'sales' ? topSelling : profitable}
+                keyExtractor={item => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <View style={styles.performanceCard}>
+                    <Text style={styles.performanceCardTitle} numberOfLines={2}>
+                      {item.name}
+                    </Text>
+                    <Text style={styles.performanceCardValue}>
+                      {selectedChart === 'sales'
+                        ? `${item.quantitySold} unid.`
+                        : `${formatCurrency(item.profit)}`}
+                    </Text>
+                    <Text style={styles.performanceCardSubtitle}>
+                      {selectedChart === 'sales'
+                        ? `${item.contributionToSales.toFixed(1)}% del total`
+                        : `Margen: ${item.profitMargin.toFixed(1)}%`}
+                    </Text>
+                  </View>
+                )}
+              />
+            </View>
 
-          <FlatList
-            data={selectedChart === 'sales' ? worstSelling : unprofitable}
-            keyExtractor={item => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <View style={[styles.performanceCard, styles.warningCard]}>
-                <Text style={styles.performanceCardTitle} numberOfLines={2}>
-                  {item.name}
-                </Text>
-                <Text style={styles.performanceCardValue}>
-                  {selectedChart === 'sales'
-                    ? `${item.quantitySold} unid.`
-                    : `${formatCurrency(item.profit)}`}
-                </Text>
-                <Text style={styles.performanceCardSubtitle}>
-                  {selectedChart === 'sales'
-                    ? `Stock: ${item.currentStock} unid.`
-                    : `Margen: ${item.profitMargin.toFixed(1)}%`}
-                </Text>
-              </View>
-            )}
-          />
-        </View>
-      </View>
+            <View style={styles.performanceSection}>
+              <Text style={styles.performanceTitle}>
+                {selectedChart === 'sales'
+                  ? 'Productos Menos Vendidos'
+                  : 'Productos Menos Rentables'}
+              </Text>
+
+              <FlatList
+                data={selectedChart === 'sales' ? worstSelling : unprofitable}
+                keyExtractor={item => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <View style={[styles.performanceCard, styles.warningCard]}>
+                    <Text style={styles.performanceCardTitle} numberOfLines={2}>
+                      {item.name}
+                    </Text>
+                    <Text style={styles.performanceCardValue}>
+                      {selectedChart === 'sales'
+                        ? `${item.quantitySold} unid.`
+                        : `${formatCurrency(item.profit)}`}
+                    </Text>
+                    <Text style={styles.performanceCardSubtitle}>
+                      {selectedChart === 'sales'
+                        ? `Stock: ${item.currentStock} unid.`
+                        : `Margen: ${item.profitMargin.toFixed(1)}%`}
+                    </Text>
+                  </View>
+                )}
+              />
+            </View>
+          </View>
+        )}
+      />
     );
   };
 
@@ -532,31 +563,39 @@ const AnalyticsScreen = () => {
     const { byDayOfWeek, byHourOfDay, recommendations } = seasonalPatterns;
     const chartData = getSeasonalChartData();
 
+    // Se puede mantener como ScrollView ya que no contiene FlatList
     return (
-      <View style={styles.tabContent}>
+      <ScrollView
+        style={styles.mainContent}
+        contentContainerStyle={styles.tabContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.chartContainer}>
           <Text style={styles.chartTitle}>Ventas por Día de la Semana</Text>
 
           {chartData.labels.length > 0 ? (
             <BarChart
               data={chartData}
-              width={width - 40}
-              height={220}
+              width={isTablet() ? wp(90) : wp(92)}
+              height={hp(25)}
               yAxisLabel=""
               chartConfig={{
                 backgroundColor: colors.white,
                 backgroundGradientFrom: colors.white,
                 backgroundGradientTo: colors.white,
                 decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(46, 134, 222, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                color: (opacity = 1) => `rgba(108, 99, 255, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(45, 55, 72, ${opacity})`,
                 style: {
-                  borderRadius: 16,
+                  borderRadius: dimensions.borderRadiusMedium,
                 },
               }}
               style={{
-                marginVertical: 8,
-                borderRadius: 16,
+                marginVertical: hp(1),
+                borderRadius: dimensions.borderRadiusMedium,
               }}
             />
           ) : (
@@ -574,7 +613,7 @@ const AnalyticsScreen = () => {
           <View style={styles.insightCard}>
             <Ionicons
               name="calendar-outline"
-              size={24}
+              size={wp(6)}
               color={colors.primary}
             />
             <View style={styles.insightContent}>
@@ -588,7 +627,7 @@ const AnalyticsScreen = () => {
           </View>
 
           <View style={styles.insightCard}>
-            <Ionicons name="time-outline" size={24} color={colors.primary} />
+            <Ionicons name="time-outline" size={wp(6)} color={colors.primary} />
             <View style={styles.insightContent}>
               <Text style={styles.insightLabel}>Horas Pico</Text>
               <Text style={styles.insightValue}>
@@ -600,7 +639,11 @@ const AnalyticsScreen = () => {
           </View>
 
           <View style={styles.insightCard}>
-            <Ionicons name="people-outline" size={24} color={colors.primary} />
+            <Ionicons
+              name="people-outline"
+              size={wp(6)}
+              color={colors.primary}
+            />
             <View style={styles.insightContent}>
               <Text style={styles.insightLabel}>Recomendación de Personal</Text>
               <Text style={styles.insightValue}>
@@ -613,7 +656,7 @@ const AnalyticsScreen = () => {
           <View style={styles.insightCard}>
             <Ionicons
               name="trending-up-outline"
-              size={24}
+              size={wp(6)}
               color={colors.primary}
             />
             <View style={styles.insightContent}>
@@ -626,7 +669,7 @@ const AnalyticsScreen = () => {
             </View>
           </View>
         </View>
-      </View>
+      </ScrollView>
     );
   };
 
@@ -705,7 +748,7 @@ const AnalyticsScreen = () => {
             >
               <Ionicons
                 name="trending-up-outline"
-                size={20}
+                size={wp(5)}
                 color={
                   activeTab === 'predictions'
                     ? colors.primary
@@ -728,7 +771,7 @@ const AnalyticsScreen = () => {
             >
               <Ionicons
                 name="refresh-outline"
-                size={20}
+                size={wp(5)}
                 color={
                   activeTab === 'restock' ? colors.primary : colors.textLight
                 }
@@ -752,7 +795,7 @@ const AnalyticsScreen = () => {
             >
               <Ionicons
                 name="stats-chart-outline"
-                size={20}
+                size={wp(5)}
                 color={
                   activeTab === 'performance'
                     ? colors.primary
@@ -775,7 +818,7 @@ const AnalyticsScreen = () => {
             >
               <Ionicons
                 name="calendar-outline"
-                size={20}
+                size={wp(5)}
                 color={
                   activeTab === 'seasonal' ? colors.primary : colors.textLight
                 }
@@ -792,14 +835,8 @@ const AnalyticsScreen = () => {
           </ScrollView>
         </View>
 
-        <ScrollView
-          style={styles.mainContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onPress={onRefresh} />
-          }
-        >
-          {renderTabContent()}
-        </ScrollView>
+        {/* Eliminado el ScrollView principal que causaba el error */}
+        <View style={styles.contentContainer}>{renderTabContent()}</View>
       </View>
     </SafeAreaView>
   );
@@ -813,38 +850,41 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  contentContainer: {
+    flex: 1,
+  },
   header: {
-    padding: 16,
+    padding: wp(4),
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: wp(5),
     fontWeight: 'bold',
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: hp(1),
   },
   periodSelector: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.background,
-    borderRadius: 8,
-    padding: 4,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(1),
   },
   periodOption: {
     flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(2),
     alignItems: 'center',
-    borderRadius: 6,
+    borderRadius: dimensions.borderRadiusSmall,
   },
   periodOptionActive: {
     backgroundColor: colors.primary,
   },
   periodText: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.text,
   },
   periodTextActive: {
@@ -853,27 +893,27 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     backgroundColor: colors.white,
-    paddingVertical: 8,
+    paddingVertical: hp(1),
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   tabs: {
-    paddingHorizontal: 8,
+    paddingHorizontal: wp(2),
   },
   tab: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginHorizontal: 4,
-    borderRadius: 20,
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(3),
+    marginHorizontal: wp(1),
+    borderRadius: dimensions.borderRadiusLarge,
   },
   activeTab: {
-    backgroundColor: colors.primaryLight + '30', // 30% de opacidad
+    backgroundColor: `${colors.primary}10`,
   },
   tabText: {
-    marginLeft: 6,
-    fontSize: 14,
+    marginLeft: wp(1.5),
+    fontSize: wp(3.5),
     color: colors.textLight,
   },
   activeTabText: {
@@ -887,11 +927,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: wp(10),
+    minHeight: hp(30),
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 16,
+    marginTop: hp(1.5),
+    fontSize: wp(4),
     color: colors.textLight,
     textAlign: 'center',
   },
@@ -899,173 +940,177 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: wp(10),
+    minHeight: hp(30),
   },
   errorText: {
-    marginVertical: 12,
-    fontSize: 16,
+    marginVertical: hp(1.5),
+    fontSize: wp(4),
     color: colors.danger,
     textAlign: 'center',
   },
   retryButton: {
     backgroundColor: colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(5),
+    borderRadius: dimensions.borderRadiusMedium,
+    marginTop: hp(2),
   },
   retryButtonText: {
     color: colors.white,
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontWeight: '600',
+    fontSize: wp(4),
   },
   tabContent: {
-    padding: 16,
+    padding: wp(4),
   },
   chartContainer: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(4),
+    marginBottom: hp(2),
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: dimensions.shadowOffsetHeight },
+    shadowOpacity: dimensions.shadowOpacityLight,
+    shadowRadius: dimensions.shadowRadius,
     elevation: 2,
   },
   chartTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: wp(4.5),
+    fontWeight: '600',
     color: colors.text,
-    marginBottom: 12,
+    marginBottom: hp(1.5),
   },
   noDataChart: {
-    height: 200,
+    height: hp(20),
     justifyContent: 'center',
     alignItems: 'center',
   },
   noDataText: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.textLight,
     textAlign: 'center',
   },
   legendContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 8,
+    marginTop: hp(1),
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 12,
+    marginHorizontal: wp(3),
   },
   legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 6,
+    width: wp(3),
+    height: wp(3),
+    borderRadius: wp(1.5),
+    marginRight: wp(1.5),
   },
   legendText: {
-    fontSize: 12,
+    fontSize: wp(3.2),
     color: colors.textLight,
   },
   predictionSummary: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: hp(2),
   },
   summaryCards: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
-    marginBottom: 16,
+    marginBottom: hp(2),
   },
   summaryCard: {
     flex: 1,
-    minWidth: '48%',
+    minWidth: wp(isTablet() ? 25 : 44),
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 4,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(3),
+    marginHorizontal: wp(1),
+    marginBottom: hp(1),
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: dimensions.shadowOffsetHeight },
+    shadowOpacity: dimensions.shadowOpacityLight,
+    shadowRadius: dimensions.shadowRadius,
     elevation: 2,
     alignItems: 'center',
   },
   summaryTitle: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.textLight,
-    marginBottom: 4,
+    marginBottom: hp(0.5),
   },
   summaryValue: {
-    fontSize: 20,
+    fontSize: wp(5),
     fontWeight: 'bold',
     color: colors.text,
-    marginBottom: 2,
+    marginBottom: hp(0.3),
   },
   summarySubtitle: {
-    fontSize: 12,
+    fontSize: wp(3),
     color: colors.textLight,
     textAlign: 'center',
   },
   infoContainer: {
     flexDirection: 'row',
-    backgroundColor: colors.primaryLight + '20',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 8,
+    backgroundColor: `${colors.primary}05`,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(3),
+    marginTop: hp(1),
   },
   infoText: {
     flex: 1,
-    marginLeft: 8,
-    fontSize: 14,
+    marginLeft: wp(2),
+    fontSize: wp(3.5),
     color: colors.text,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: wp(10),
+    minHeight: hp(30),
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: wp(4.5),
     fontWeight: 'bold',
     color: colors.text,
-    marginTop: 12,
-    marginBottom: 8,
+    marginTop: hp(1.5),
+    marginBottom: hp(1),
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: wp(4),
     color: colors.textLight,
     textAlign: 'center',
+    maxWidth: wp(80),
   },
   sectionHeader: {
-    marginBottom: 16,
+    marginBottom: hp(2),
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: wp(4.5),
     fontWeight: 'bold',
     color: colors.text,
   },
   sectionSubtitle: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.textLight,
-    marginTop: 4,
+    marginTop: hp(0.5),
   },
   restockItem: {
     flexDirection: 'row',
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(4),
+    marginBottom: hp(1.5),
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: dimensions.shadowOffsetHeight },
+    shadowOpacity: dimensions.shadowOpacityLight,
+    shadowRadius: dimensions.shadowRadius,
     elevation: 2,
-    borderLeftWidth: 4,
+    borderLeftWidth: wp(1),
   },
   highUrgency: {
     borderLeftColor: colors.danger,
@@ -1080,27 +1125,27 @@ const styles = StyleSheet.create({
     flex: 3,
   },
   restockName: {
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: '500',
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: hp(0.5),
   },
   restockSku: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.textLight,
-    marginBottom: 8,
+    marginBottom: hp(1),
   },
   restockMetrics: {
     flexDirection: 'row',
-    marginBottom: 4,
+    marginBottom: hp(0.5),
   },
   metricLabel: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.textLight,
-    width: 100,
+    width: wp(25),
   },
   metricValue: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     fontWeight: '500',
     color: colors.text,
   },
@@ -1109,17 +1154,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderLeftWidth: 1,
-    borderLeftColor: colors.grayLight,
-    paddingLeft: 12,
+    borderLeftColor: colors.border,
+    paddingLeft: wp(3),
   },
   daysUntilOutLabel: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     textAlign: 'center',
     color: colors.textLight,
-    marginBottom: 8,
+    marginBottom: hp(1),
   },
   recommendedQuantity: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     fontWeight: 'bold',
     color: colors.primary,
     textAlign: 'center',
@@ -1127,27 +1172,27 @@ const styles = StyleSheet.create({
   performanceSelector: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 16,
+    marginBottom: hp(2),
   },
   selectorOption: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
-    marginHorizontal: 8,
-    borderRadius: 8,
+    padding: wp(3),
+    marginHorizontal: wp(2),
+    borderRadius: dimensions.borderRadiusMedium,
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.grayLight,
+    borderColor: colors.border,
   },
   selectorOptionActive: {
     borderColor: colors.primary,
-    backgroundColor: colors.primaryLight + '20',
+    backgroundColor: `${colors.primary}10`,
   },
   selectorText: {
-    marginLeft: 8,
-    fontSize: 14,
+    marginLeft: wp(2),
+    fontSize: wp(3.5),
     color: colors.textLight,
   },
   selectorTextActive: {
@@ -1155,79 +1200,79 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   performanceSection: {
-    marginBottom: 20,
+    marginBottom: hp(2.5),
   },
   performanceTitle: {
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: 'bold',
     color: colors.text,
-    marginBottom: 12,
+    marginBottom: hp(1.5),
   },
   performanceCard: {
-    width: 160,
+    width: wp(40),
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginRight: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(4),
+    marginRight: wp(3),
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: dimensions.shadowOffsetHeight },
+    shadowOpacity: dimensions.shadowOpacityLight,
+    shadowRadius: dimensions.shadowRadius,
     elevation: 2,
   },
   warningCard: {
-    borderTopWidth: 3,
+    borderTopWidth: hp(0.4),
     borderTopColor: colors.warning,
   },
   performanceCardTitle: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     fontWeight: '500',
     color: colors.text,
-    marginBottom: 12,
-    height: 40,
+    marginBottom: hp(1.5),
+    height: hp(5),
   },
   performanceCardValue: {
-    fontSize: 18,
+    fontSize: wp(4.5),
     fontWeight: 'bold',
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: hp(0.5),
   },
   performanceCardSubtitle: {
-    fontSize: 12,
+    fontSize: wp(3),
     color: colors.textLight,
   },
   seasonalInsights: {
-    marginTop: 8,
+    marginTop: hp(1),
   },
   insightTitle: {
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: 'bold',
     color: colors.text,
-    marginBottom: 12,
+    marginBottom: hp(1.5),
   },
   insightCard: {
     flexDirection: 'row',
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(4),
+    marginBottom: hp(1.5),
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: dimensions.shadowOffsetHeight },
+    shadowOpacity: dimensions.shadowOpacityLight,
+    shadowRadius: dimensions.shadowRadius,
     elevation: 2,
   },
   insightContent: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: wp(3),
   },
   insightLabel: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.textLight,
-    marginBottom: 4,
+    marginBottom: hp(0.5),
   },
   insightValue: {
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: '500',
     color: colors.text,
   },
