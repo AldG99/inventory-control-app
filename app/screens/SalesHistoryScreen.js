@@ -9,6 +9,8 @@ import {
   RefreshControl,
   Modal,
   ScrollView,
+  Dimensions,
+  PixelRatio,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +18,7 @@ import { InventoryContext } from '../context/InventoryContext';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '../services/firebaseService';
 import COLLECTIONS from '../constants/collections';
+import { wp, hp, isTablet, dimensions } from '../utils/responsive';
 import colors from '../constants/colors';
 
 const SalesHistoryScreen = () => {
@@ -24,6 +27,7 @@ const SalesHistoryScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
   const [showSaleModal, setShowSaleModal] = useState(false);
+  const [dateFilter, setDateFilter] = useState('all'); // 'all', 'today', 'week', 'month'
 
   // Cargar historial de ventas
   const loadSales = async () => {
@@ -54,6 +58,44 @@ const SalesHistoryScreen = () => {
   useEffect(() => {
     loadSales();
   }, []);
+
+  // Filtrar ventas según el filtro de fecha
+  const filteredSales = sales.filter(sale => {
+    if (dateFilter === 'all') return true;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const saleDate = sale.createdAt;
+    if (!saleDate) return false;
+
+    if (dateFilter === 'today') {
+      const saleDay = new Date(saleDate);
+      saleDay.setHours(0, 0, 0, 0);
+      return saleDay.getTime() === today.getTime();
+    }
+
+    if (dateFilter === 'week') {
+      const weekAgo = new Date(today);
+      weekAgo.setDate(today.getDate() - 7);
+      return saleDate >= weekAgo;
+    }
+
+    if (dateFilter === 'month') {
+      const monthAgo = new Date(today);
+      monthAgo.setMonth(today.getMonth() - 1);
+      return saleDate >= monthAgo;
+    }
+
+    return true;
+  });
+
+  // Calcular totales
+  const totalSales = filteredSales.length;
+  const totalAmount = filteredSales.reduce(
+    (sum, sale) => sum + (sale.total || 0),
+    0
+  );
 
   // Función para refrescar datos
   const onRefresh = async () => {
@@ -108,7 +150,7 @@ const SalesHistoryScreen = () => {
 
       <View style={styles.saleInfo}>
         <View style={styles.saleInfoItem}>
-          <Ionicons name="cart-outline" size={16} color={colors.textLight} />
+          <Ionicons name="cart-outline" size={wp(4)} color={colors.textLight} />
           <Text style={styles.saleInfoText}>
             {item.items?.length || 0} productos
           </Text>
@@ -123,7 +165,7 @@ const SalesHistoryScreen = () => {
                 ? 'card-outline'
                 : 'repeat-outline'
             }
-            size={16}
+            size={wp(4)}
             color={colors.textLight}
           />
           <Text style={styles.saleInfoText}>
@@ -141,29 +183,121 @@ const SalesHistoryScreen = () => {
           <Text style={styles.headerTitle}>Historial de Ventas</Text>
         </View>
 
+        {/* Filtros de fecha */}
+        <View style={styles.filterContainer}>
+          <TouchableOpacity
+            style={[
+              styles.filterOption,
+              dateFilter === 'all' && styles.activeFilterOption,
+            ]}
+            onPress={() => setDateFilter('all')}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                dateFilter === 'all' && styles.activeFilterText,
+              ]}
+            >
+              Todas
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.filterOption,
+              dateFilter === 'today' && styles.activeFilterOption,
+            ]}
+            onPress={() => setDateFilter('today')}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                dateFilter === 'today' && styles.activeFilterText,
+              ]}
+            >
+              Hoy
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.filterOption,
+              dateFilter === 'week' && styles.activeFilterOption,
+            ]}
+            onPress={() => setDateFilter('week')}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                dateFilter === 'week' && styles.activeFilterText,
+              ]}
+            >
+              Esta semana
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.filterOption,
+              dateFilter === 'month' && styles.activeFilterOption,
+            ]}
+            onPress={() => setDateFilter('month')}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                dateFilter === 'month' && styles.activeFilterText,
+              ]}
+            >
+              Este mes
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Resumen de ventas filtradas */}
+        <View style={styles.summary}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Ventas:</Text>
+            <Text style={styles.summaryValue}>{totalSales}</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Total:</Text>
+            <Text style={styles.summaryValue}>
+              {formatCurrency(totalAmount)}
+            </Text>
+          </View>
+        </View>
+
         {loading && !refreshing ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={styles.loadingText}>Cargando ventas...</Text>
           </View>
-        ) : sales.length > 0 ? (
+        ) : filteredSales.length > 0 ? (
           <FlatList
-            data={sales}
+            data={filteredSales}
             renderItem={renderSaleItem}
             keyExtractor={item => item.id}
             contentContainerStyle={styles.salesList}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
+            showsVerticalScrollIndicator={false}
           />
         ) : (
           <View style={styles.emptyState}>
-            <Ionicons name="receipt-outline" size={60} color={colors.gray} />
+            <Ionicons
+              name="receipt-outline"
+              size={wp(15)}
+              color={colors.textMuted}
+            />
             <Text style={styles.emptyStateTitle}>
               No hay ventas registradas
             </Text>
             <Text style={styles.emptyStateText}>
-              Las ventas que registres aparecerán aquí
+              {dateFilter !== 'all'
+                ? 'No hay ventas en el período seleccionado'
+                : 'Las ventas que registres aparecerán aquí'}
             </Text>
           </View>
         )}
@@ -179,11 +313,14 @@ const SalesHistoryScreen = () => {
                     style={styles.closeButton}
                     onPress={() => setShowSaleModal(false)}
                   >
-                    <Ionicons name="close" size={24} color={colors.text} />
+                    <Ionicons name="close" size={wp(6)} color={colors.text} />
                   </TouchableOpacity>
                 </View>
 
-                <ScrollView style={styles.modalContent}>
+                <ScrollView
+                  style={styles.modalContent}
+                  showsVerticalScrollIndicator={false}
+                >
                   {/* Información general */}
                   <View style={styles.detailSection}>
                     <View style={styles.detailRow}>
@@ -282,18 +419,68 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 16,
+    padding: wp(4),
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: wp(5),
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    backgroundColor: colors.white,
+    paddingHorizontal: wp(4),
+    paddingBottom: hp(2),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  filterOption: {
+    paddingVertical: hp(0.8),
+    paddingHorizontal: wp(3),
+    marginRight: wp(2),
+    borderRadius: dimensions.borderRadiusMedium,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  activeFilterOption: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterText: {
+    fontSize: wp(3.5),
+    color: colors.text,
+  },
+  activeFilterText: {
+    color: colors.white,
+    fontWeight: '500',
+  },
+  summary: {
+    flexDirection: 'row',
+    backgroundColor: colors.white,
+    padding: wp(4),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    marginRight: wp(6),
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: wp(3.8),
+    color: colors.textLight,
+    marginRight: wp(2),
+  },
+  summaryValue: {
+    fontSize: wp(4),
     fontWeight: 'bold',
     color: colors.text,
   },
   salesList: {
-    padding: 16,
+    padding: wp(4),
   },
   loadingContainer: {
     flex: 1,
@@ -302,56 +489,56 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 16,
+    marginTop: hp(1.5),
+    fontSize: wp(4),
     color: colors.textLight,
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: wp(5),
   },
   emptyStateTitle: {
-    fontSize: 20,
+    fontSize: wp(5),
     fontWeight: 'bold',
     color: colors.text,
-    marginVertical: 12,
+    marginVertical: hp(1.5),
   },
   emptyStateText: {
-    fontSize: 16,
+    fontSize: wp(4),
     color: colors.textLight,
     textAlign: 'center',
   },
   saleItem: {
     backgroundColor: colors.white,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(4),
+    marginBottom: hp(1.5),
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: dimensions.shadowOffsetHeight },
+    shadowOpacity: dimensions.shadowOpacityLight,
+    shadowRadius: dimensions.shadowRadius,
     elevation: 2,
   },
   saleHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: hp(1),
   },
   saleId: {
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: 'bold',
     color: colors.text,
   },
   saleDate: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.textLight,
-    marginBottom: 4,
+    marginBottom: hp(0.5),
   },
   saleTotal: {
-    fontSize: 18,
+    fontSize: wp(4.5),
     fontWeight: 'bold',
     color: colors.success,
   },
@@ -361,13 +548,14 @@ const styles = StyleSheet.create({
   saleInfoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: wp(4),
   },
   saleInfoText: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.textLight,
-    marginLeft: 4,
+    marginLeft: wp(1),
   },
+
   // Estilos para el modal
   modalOverlay: {
     flex: 1,
@@ -377,8 +565,8 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    width: '90%',
+    borderRadius: dimensions.borderRadiusMedium,
+    width: isTablet() ? '70%' : '90%',
     maxHeight: '80%',
     overflow: 'hidden',
   },
@@ -386,126 +574,126 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: wp(4),
     borderBottomWidth: 1,
-    borderBottomColor: colors.grayLight,
+    borderBottomColor: colors.border,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: wp(4.5),
     fontWeight: 'bold',
     color: colors.text,
   },
   closeButton: {
-    padding: 4,
+    padding: wp(1),
   },
   modalContent: {
-    padding: 16,
+    padding: wp(4),
   },
   detailSection: {
-    marginBottom: 20,
+    marginBottom: hp(2.5),
   },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: hp(1),
     borderBottomWidth: 1,
-    borderBottomColor: colors.grayLight,
+    borderBottomColor: colors.border,
   },
   detailLabel: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.textLight,
   },
   detailValue: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     fontWeight: '500',
     color: colors.text,
   },
   notesContainer: {
-    marginTop: 12,
-    padding: 12,
+    marginTop: hp(1.5),
+    padding: wp(3),
     backgroundColor: colors.background,
-    borderRadius: 8,
+    borderRadius: dimensions.borderRadiusSmall,
   },
   notesText: {
-    marginTop: 4,
-    fontSize: 14,
+    marginTop: hp(0.5),
+    fontSize: wp(3.5),
     color: colors.text,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: 'bold',
     color: colors.text,
-    marginBottom: 12,
+    marginBottom: hp(1.5),
   },
   productSection: {
-    marginBottom: 20,
+    marginBottom: hp(2.5),
   },
   productItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: hp(1.5),
     borderBottomWidth: 1,
-    borderBottomColor: colors.grayLight,
+    borderBottomColor: colors.border,
   },
   productInfo: {
     flex: 1,
   },
   productName: {
-    fontSize: 15,
+    fontSize: wp(3.8),
     fontWeight: '500',
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: hp(0.5),
   },
   productPriceQuantity: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   productQuantity: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.textLight,
   },
   productPrice: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.textLight,
   },
   productTotal: {
-    fontSize: 15,
+    fontSize: wp(3.8),
     fontWeight: 'bold',
     color: colors.primary,
   },
   totalSection: {
     backgroundColor: colors.background,
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(3),
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: hp(1),
   },
   totalLabel: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     color: colors.textLight,
   },
   totalValue: {
-    fontSize: 14,
+    fontSize: wp(3.5),
     fontWeight: '500',
     color: colors.text,
   },
   grandTotal: {
-    marginTop: 4,
+    marginTop: hp(0.5),
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    paddingTop: 12,
+    paddingTop: hp(1.5),
   },
   grandTotalLabel: {
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: 'bold',
     color: colors.text,
   },
   grandTotalValue: {
-    fontSize: 18,
+    fontSize: wp(4.5),
     fontWeight: 'bold',
     color: colors.primary,
   },
