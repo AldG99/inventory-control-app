@@ -13,11 +13,14 @@ import {
   Modal,
   ScrollView,
   Keyboard,
+  Dimensions,
+  PixelRatio,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { InventoryContext } from '../context/InventoryContext';
 import colors from '../constants/colors';
+import { wp, hp, isTablet, dimensions } from '../utils/responsive';
 
 const SalesScreen = ({ navigation }) => {
   const { products, registerSale } = useContext(InventoryContext);
@@ -62,363 +65,7 @@ const SalesScreen = ({ navigation }) => {
     }).format(amount);
   };
 
-  const styles = StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    container: {
-      flex: 1,
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: 16,
-      backgroundColor: colors.white,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    headerTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: colors.text,
-    },
-    addProductButton: {
-      flexDirection: 'row',
-      backgroundColor: colors.primary,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      borderRadius: 8,
-      alignItems: 'center',
-    },
-    addProductButtonText: {
-      color: colors.white,
-      fontWeight: 'bold',
-      marginLeft: 4,
-    },
-    cartList: {
-      padding: 16,
-      paddingBottom: 40, // Añadir padding adicional al fondo para asegurar scroll
-    },
-    cartItem: {
-      backgroundColor: colors.white,
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 12,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 2,
-      elevation: 2,
-    },
-    cartItemInfo: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 8,
-    },
-    cartItemName: {
-      fontSize: 16,
-      fontWeight: '500',
-      color: colors.text,
-      flex: 1,
-    },
-    cartItemPrice: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: colors.text,
-    },
-    cartItemActions: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 8,
-    },
-    quantityButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      borderWidth: 1,
-      borderColor: colors.border,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: colors.white,
-    },
-    quantityText: {
-      fontSize: 16,
-      color: colors.text,
-      marginHorizontal: 12,
-      minWidth: 30,
-      textAlign: 'center',
-    },
-    removeButton: {
-      marginLeft: 'auto',
-      padding: 8,
-    },
-    cartItemSubtotal: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: colors.primary,
-      textAlign: 'right',
-    },
-    emptyCart: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 20,
-    },
-    emptyCartTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: colors.text,
-      marginVertical: 12,
-    },
-    emptyCartText: {
-      fontSize: 16,
-      color: colors.textLight,
-      textAlign: 'center',
-      marginBottom: 20,
-    },
-    emptyCartButton: {
-      backgroundColor: colors.primary,
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 8,
-    },
-    emptyCartButtonText: {
-      color: colors.white,
-      fontWeight: 'bold',
-      fontSize: 16,
-    },
-    saleDetails: {
-      backgroundColor: colors.white,
-      margin: 16,
-      borderRadius: 12,
-      padding: 16,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: colors.text,
-      marginBottom: 12,
-    },
-    paymentMethodContainer: {
-      marginBottom: 16,
-    },
-    paymentOptions: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    paymentOption: {
-      flex: 1,
-      alignItems: 'center',
-      padding: 12,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border,
-      marginHorizontal: 4,
-    },
-    selectedPaymentOption: {
-      borderColor: colors.primary,
-      backgroundColor: colors.primaryLight + '20', // 20% de opacidad
-    },
-    paymentOptionText: {
-      fontSize: 14,
-      color: colors.text,
-      marginTop: 4,
-    },
-    selectedPaymentOptionText: {
-      color: colors.primary,
-      fontWeight: '500',
-    },
-    notesContainer: {
-      marginBottom: 16,
-    },
-    notesInput: {
-      backgroundColor: colors.background,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: 12,
-      height: 80,
-      textAlignVertical: 'top',
-    },
-    summaryContainer: {
-      borderTopWidth: 1,
-      borderTopColor: colors.grayLight,
-      paddingTop: 16,
-    },
-    summaryRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 8,
-    },
-    summaryLabel: {
-      fontSize: 14,
-      color: colors.textLight,
-    },
-    summaryValue: {
-      fontSize: 14,
-      color: colors.text,
-      fontWeight: '500',
-    },
-    totalRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 8,
-      paddingTop: 8,
-      borderTopWidth: 1,
-      borderTopColor: colors.grayLight,
-    },
-    totalLabel: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: colors.text,
-    },
-    totalValue: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: colors.primary,
-    },
-    checkoutContainer: {
-      padding: 16,
-      backgroundColor: colors.white,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-    },
-    checkoutButton: {
-      backgroundColor: colors.success,
-      flexDirection: 'row',
-      height: 50,
-      borderRadius: 8,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    checkoutButtonDisabled: {
-      backgroundColor: colors.gray,
-    },
-    checkoutButtonText: {
-      color: colors.white,
-      fontSize: 16,
-      fontWeight: 'bold',
-      marginLeft: 8,
-    },
-    // Estilos para el modal
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      justifyContent: 'flex-end',
-    },
-    modalContainer: {
-      backgroundColor: colors.white,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      paddingBottom: 20,
-      height: '80%',
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.grayLight,
-    },
-    modalTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: colors.text,
-    },
-    closeButton: {
-      padding: 4,
-    },
-    searchContainer: {
-      padding: 16,
-    },
-    searchBar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.background,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      height: 44,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    searchInput: {
-      flex: 1,
-      marginLeft: 8,
-      fontSize: 16,
-      color: colors.text,
-    },
-    productsList: {
-      paddingHorizontal: 16,
-    },
-    productItem: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.grayLight,
-    },
-    productInfo: {
-      flex: 1,
-    },
-    productName: {
-      fontSize: 16,
-      fontWeight: '500',
-      color: colors.text,
-      marginBottom: 2,
-    },
-    productSku: {
-      fontSize: 13,
-      color: colors.textLight,
-      marginBottom: 2,
-    },
-    productStock: {
-      fontSize: 13,
-      color: colors.success,
-    },
-    productPrice: {
-      alignItems: 'flex-end',
-    },
-    priceText: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: colors.text,
-      marginBottom: 4,
-    },
-    addButton: {
-      backgroundColor: colors.primary,
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    emptyResults: {
-      padding: 20,
-      alignItems: 'center',
-    },
-    emptyResultsText: {
-      fontSize: 16,
-      color: colors.textLight,
-      textAlign: 'center',
-    },
-  });
-
   // Añadir producto al carrito
-  // Función para hacer foco en el TextInput de notas
-  const focusTextInput = () => {
-    // Esta función se llamaría cuando queremos hacer foco en un TextInput específico
-    // después de añadir productos o en otro momento donde necesitemos scroll
-  };
-
   const addToCart = product => {
     // Cerrar el teclado explícitamente
     Keyboard.dismiss();
@@ -556,39 +203,44 @@ const SalesScreen = ({ navigation }) => {
   // Renderizar cada elemento del carrito
   const renderCartItem = ({ item, index }) => (
     <View style={styles.cartItem}>
-      <View style={styles.cartItemInfo}>
-        <Text style={styles.cartItemName}>{item.productName}</Text>
-        <Text style={styles.cartItemPrice}>{formatCurrency(item.price)}</Text>
-      </View>
-
-      <View style={styles.cartItemActions}>
-        <TouchableOpacity
-          style={styles.quantityButton}
-          onPress={() => updateItemQuantity(index, item.quantity - 1)}
-        >
-          <Ionicons name="remove" size={20} color={colors.textLight} />
-        </TouchableOpacity>
-
-        <Text style={styles.quantityText}>{item.quantity}</Text>
-
-        <TouchableOpacity
-          style={styles.quantityButton}
-          onPress={() => updateItemQuantity(index, item.quantity + 1)}
-        >
-          <Ionicons name="add" size={20} color={colors.textLight} />
-        </TouchableOpacity>
-
+      <View style={styles.cartItemHeader}>
+        <Text style={styles.cartItemName} numberOfLines={1}>
+          {item.productName}
+        </Text>
         <TouchableOpacity
           style={styles.removeButton}
           onPress={() => removeFromCart(index)}
         >
-          <Ionicons name="trash-outline" size={20} color={colors.danger} />
+          <Ionicons name="close-circle" size={wp(5)} color={colors.danger} />
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.cartItemSubtotal}>
-        {formatCurrency(item.price * item.quantity)}
-      </Text>
+      <View style={styles.cartItemBody}>
+        <View style={styles.quantityControls}>
+          <TouchableOpacity
+            style={styles.quantityButton}
+            onPress={() => updateItemQuantity(index, item.quantity - 1)}
+          >
+            <Ionicons name="remove" size={wp(4)} color={colors.text} />
+          </TouchableOpacity>
+
+          <Text style={styles.quantityText}>{item.quantity}</Text>
+
+          <TouchableOpacity
+            style={styles.quantityButton}
+            onPress={() => updateItemQuantity(index, item.quantity + 1)}
+          >
+            <Ionicons name="add" size={wp(4)} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.priceContainer}>
+          <Text style={styles.priceText}>{formatCurrency(item.price)}</Text>
+          <Text style={styles.subtotalText}>
+            {formatCurrency(item.price * item.quantity)}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 
@@ -601,19 +253,19 @@ const SalesScreen = ({ navigation }) => {
       <View style={styles.productInfo}>
         <Text style={styles.productName}>{item.name}</Text>
         {item.sku && <Text style={styles.productSku}>SKU: {item.sku}</Text>}
-        <Text style={styles.productStock}>
-          Disponible: {item.quantity} unidades
-        </Text>
+        <View style={styles.productStats}>
+          <Text style={styles.productPrice}>{formatCurrency(item.price)}</Text>
+          <Text style={styles.productStock}>
+            Stock: {item.quantity} unidades
+          </Text>
+        </View>
       </View>
-      <View style={styles.productPrice}>
-        <Text style={styles.priceText}>{formatCurrency(item.price)}</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => addToCart(item)}
-        >
-          <Ionicons name="add" size={20} color={colors.white} />
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => addToCart(item)}
+      >
+        <Ionicons name="add" size={wp(5)} color={colors.white} />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 
@@ -622,306 +274,650 @@ const SalesScreen = ({ navigation }) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.container}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? hp(10) : 0}
       >
-        <View style={styles.container}>
-          {/* Cabecera */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Nueva Venta</Text>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Nueva Venta</Text>
+          <TouchableOpacity
+            style={styles.addProductButton}
+            onPress={() => setShowProductModal(true)}
+          >
+            <Ionicons name="add" size={wp(5)} color={colors.white} />
+            <Text style={styles.addProductButtonText}>Añadir Producto</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Lista de productos en el carrito */}
+        {cartItems.length > 0 ? (
+          <ScrollView
+            style={styles.cartContainer}
+            contentContainerStyle={styles.cartContent}
+          >
+            <Text style={styles.sectionTitle}>Productos Seleccionados</Text>
+            {cartItems.map((item, index) => (
+              <View key={`${item.productId}-${index}`}>
+                {renderCartItem({ item, index })}
+              </View>
+            ))}
+
+            {/* Detalles de la venta */}
+            <View style={styles.saleDetails}>
+              {/* Método de pago */}
+              <Text style={styles.sectionTitle}>Método de Pago</Text>
+              <View style={styles.paymentOptions}>
+                <TouchableOpacity
+                  style={[
+                    styles.paymentOption,
+                    paymentMethod === 'Efectivo' &&
+                      styles.selectedPaymentOption,
+                  ]}
+                  onPress={() => setPaymentMethod('Efectivo')}
+                >
+                  <Ionicons
+                    name="cash-outline"
+                    size={wp(6)}
+                    color={
+                      paymentMethod === 'Efectivo'
+                        ? colors.primary
+                        : colors.textLight
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.paymentOptionText,
+                      paymentMethod === 'Efectivo' &&
+                        styles.selectedPaymentOptionText,
+                    ]}
+                  >
+                    Efectivo
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.paymentOption,
+                    paymentMethod === 'Tarjeta' && styles.selectedPaymentOption,
+                  ]}
+                  onPress={() => setPaymentMethod('Tarjeta')}
+                >
+                  <Ionicons
+                    name="card-outline"
+                    size={wp(6)}
+                    color={
+                      paymentMethod === 'Tarjeta'
+                        ? colors.primary
+                        : colors.textLight
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.paymentOptionText,
+                      paymentMethod === 'Tarjeta' &&
+                        styles.selectedPaymentOptionText,
+                    ]}
+                  >
+                    Tarjeta
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.paymentOption,
+                    paymentMethod === 'Transferencia' &&
+                      styles.selectedPaymentOption,
+                  ]}
+                  onPress={() => setPaymentMethod('Transferencia')}
+                >
+                  <Ionicons
+                    name="repeat-outline"
+                    size={wp(6)}
+                    color={
+                      paymentMethod === 'Transferencia'
+                        ? colors.primary
+                        : colors.textLight
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.paymentOptionText,
+                      paymentMethod === 'Transferencia' &&
+                        styles.selectedPaymentOptionText,
+                    ]}
+                  >
+                    Transferencia
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Notas */}
+              <Text style={styles.sectionTitle}>Notas (Opcional)</Text>
+              <TextInput
+                style={styles.notesInput}
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="Añadir notas sobre la venta..."
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                placeholderTextColor={colors.textMuted}
+              />
+
+              {/* Resumen */}
+              <View style={styles.summaryContainer}>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Subtotal</Text>
+                  <Text style={styles.summaryValue}>
+                    {formatCurrency(total)}
+                  </Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Impuestos</Text>
+                  <Text style={styles.summaryValue}>{formatCurrency(0)}</Text>
+                </View>
+                <View style={styles.totalRow}>
+                  <Text style={styles.totalLabel}>TOTAL</Text>
+                  <Text style={styles.totalValue}>{formatCurrency(total)}</Text>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        ) : (
+          <View style={styles.emptyCart}>
+            <Ionicons
+              name="cart-outline"
+              size={wp(15)}
+              color={colors.textMuted}
+            />
+            <Text style={styles.emptyCartTitle}>Carrito Vacío</Text>
+            <Text style={styles.emptyCartText}>
+              Añade productos para registrar una venta
+            </Text>
             <TouchableOpacity
-              style={styles.addProductButton}
+              style={styles.emptyCartButton}
               onPress={() => setShowProductModal(true)}
             >
-              <Ionicons name="add" size={24} color={colors.white} />
-              <Text style={styles.addProductButtonText}>Añadir Producto</Text>
+              <Text style={styles.emptyCartButtonText}>Añadir Productos</Text>
             </TouchableOpacity>
           </View>
+        )}
 
-          {/* Lista de productos en el carrito */}
-          {cartItems.length > 0 ? (
-            <ScrollView
-              style={{ flex: 1 }}
-              contentContainerStyle={styles.cartList}
-            >
-              {cartItems.map((item, index) => (
-                <View key={`${item.productId}-${index}`}>
-                  {renderCartItem({ item, index })}
-                </View>
-              ))}
-
-              {/* Detalles de la venta */}
-              <View style={styles.saleDetails}>
-                {/* Método de pago */}
-                <View style={styles.paymentMethodContainer}>
-                  <Text style={styles.sectionTitle}>Método de Pago</Text>
-                  <View style={styles.paymentOptions}>
-                    <TouchableOpacity
-                      style={[
-                        styles.paymentOption,
-                        paymentMethod === 'Efectivo' &&
-                          styles.selectedPaymentOption,
-                      ]}
-                      onPress={() => setPaymentMethod('Efectivo')}
-                    >
-                      <Ionicons
-                        name="cash-outline"
-                        size={24}
-                        color={
-                          paymentMethod === 'Efectivo'
-                            ? colors.primary
-                            : colors.textLight
-                        }
-                      />
-                      <Text
-                        style={[
-                          styles.paymentOptionText,
-                          paymentMethod === 'Efectivo' &&
-                            styles.selectedPaymentOptionText,
-                        ]}
-                      >
-                        Efectivo
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.paymentOption,
-                        paymentMethod === 'Tarjeta' &&
-                          styles.selectedPaymentOption,
-                      ]}
-                      onPress={() => setPaymentMethod('Tarjeta')}
-                    >
-                      <Ionicons
-                        name="card-outline"
-                        size={24}
-                        color={
-                          paymentMethod === 'Tarjeta'
-                            ? colors.primary
-                            : colors.textLight
-                        }
-                      />
-                      <Text
-                        style={[
-                          styles.paymentOptionText,
-                          paymentMethod === 'Tarjeta' &&
-                            styles.selectedPaymentOptionText,
-                        ]}
-                      >
-                        Tarjeta
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.paymentOption,
-                        paymentMethod === 'Transferencia' &&
-                          styles.selectedPaymentOption,
-                      ]}
-                      onPress={() => setPaymentMethod('Transferencia')}
-                    >
-                      <Ionicons
-                        name="repeat-outline"
-                        size={24}
-                        color={
-                          paymentMethod === 'Transferencia'
-                            ? colors.primary
-                            : colors.textLight
-                        }
-                      />
-                      <Text
-                        style={[
-                          styles.paymentOptionText,
-                          paymentMethod === 'Transferencia' &&
-                            styles.selectedPaymentOptionText,
-                        ]}
-                      >
-                        Transferencia
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                {/* Notas */}
-                <View style={styles.notesContainer}>
-                  <Text style={styles.sectionTitle}>Notas (Opcional)</Text>
-                  <TextInput
-                    style={styles.notesInput}
-                    value={notes}
-                    onChangeText={setNotes}
-                    placeholder="Añadir notas sobre la venta..."
-                    multiline
-                    numberOfLines={2}
-                    textAlignVertical="top"
-                    onFocus={() => {
-                      // Dar tiempo para que el teclado aparezca y luego hacer scroll
-                      setTimeout(() => {
-                        if (Platform.OS === 'android') {
-                          Keyboard.dismiss(); // En Android, a veces esto ayuda
-                          setTimeout(() => {
-                            // Volver a poner el foco y hacer scroll
-                            focusTextInput();
-                          }, 100);
-                        }
-                      }, 100);
-                    }}
-                  />
-                </View>
-
-                {/* Resumen */}
-                <View style={styles.summaryContainer}>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Subtotal</Text>
-                    <Text style={styles.summaryValue}>
-                      {formatCurrency(total)}
-                    </Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Impuestos</Text>
-                    <Text style={styles.summaryValue}>{formatCurrency(0)}</Text>
-                  </View>
-                  <View style={styles.totalRow}>
-                    <Text style={styles.totalLabel}>TOTAL</Text>
-                    <Text style={styles.totalValue}>
-                      {formatCurrency(total)}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </ScrollView>
-          ) : (
-            <View style={styles.emptyCart}>
-              <Ionicons name="cart-outline" size={60} color={colors.gray} />
-              <Text style={styles.emptyCartTitle}>Carrito Vacío</Text>
-              <Text style={styles.emptyCartText}>
-                Añade productos para registrar una venta
-              </Text>
-              <TouchableOpacity
-                style={styles.emptyCartButton}
-                onPress={() => setShowProductModal(true)}
-              >
-                <Text style={styles.emptyCartButtonText}>Añadir Productos</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Botón para finalizar venta */}
-          {cartItems.length > 0 && (
-            <View style={styles.checkoutContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.checkoutButton,
-                  loading && styles.checkoutButtonDisabled,
-                ]}
-                onPress={handleCheckout}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color={colors.white} size="small" />
-                ) : (
-                  <>
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={24}
-                      color={colors.white}
-                    />
-                    <Text style={styles.checkoutButtonText}>
-                      Finalizar Venta
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Modal para buscar y añadir productos */}
-          <Modal
-            visible={showProductModal}
-            animationType="slide"
-            transparent={true}
-          >
+        {/* Botón para finalizar venta */}
+        {cartItems.length > 0 && (
+          <View style={styles.checkoutContainer}>
             <TouchableOpacity
-              style={styles.modalOverlay}
-              activeOpacity={1}
-              onPress={() => {
-                Keyboard.dismiss();
-                // Opcional: si quieres que al tocar el fondo se cierre el modal
-                // setShowProductModal(false);
-                // setSearchQuery('');
-              }}
+              style={[
+                styles.checkoutButton,
+                loading && styles.checkoutButtonDisabled,
+              ]}
+              onPress={handleCheckout}
+              disabled={loading}
             >
-              <View
-                style={styles.modalContainer}
-                onStartShouldSetResponder={() => true}
-              >
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Añadir Productos</Text>
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => {
-                      Keyboard.dismiss();
-                      setShowProductModal(false);
-                      setSearchQuery('');
-                    }}
-                  >
-                    <Ionicons name="close" size={24} color={colors.text} />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.searchContainer}>
-                  <View style={styles.searchBar}>
-                    <Ionicons
-                      name="search"
-                      size={20}
-                      color={colors.textLight}
-                    />
-                    <TextInput
-                      style={styles.searchInput}
-                      value={searchQuery}
-                      onChangeText={setSearchQuery}
-                      placeholder="Buscar productos..."
-                      autoFocus
-                    />
-                    {searchQuery ? (
-                      <TouchableOpacity
-                        onPress={() => {
-                          setSearchQuery('');
-                          Keyboard.dismiss();
-                        }}
-                      >
-                        <Ionicons
-                          name="close-circle"
-                          size={20}
-                          color={colors.textLight}
-                        />
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
-                </View>
-
-                <FlatList
-                  data={filteredProducts}
-                  renderItem={renderProductItem}
-                  keyExtractor={item => item.id}
-                  contentContainerStyle={styles.productsList}
-                  keyboardShouldPersistTaps="handled"
-                  onScrollBeginDrag={() => Keyboard.dismiss()}
-                  ListEmptyComponent={
-                    <View style={styles.emptyResults}>
-                      <Text style={styles.emptyResultsText}>
-                        {searchQuery
-                          ? 'No se encontraron productos que coincidan con la búsqueda'
-                          : 'No hay productos disponibles'}
-                      </Text>
-                    </View>
-                  }
-                />
-              </View>
+              {loading ? (
+                <ActivityIndicator color={colors.white} size="small" />
+              ) : (
+                <>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={wp(5)}
+                    color={colors.white}
+                  />
+                  <Text style={styles.checkoutButtonText}>Finalizar Venta</Text>
+                </>
+              )}
             </TouchableOpacity>
-          </Modal>
-        </View>
+          </View>
+        )}
+
+        {/* Modal para buscar y añadir productos */}
+        <Modal
+          visible={showProductModal}
+          animationType="slide"
+          transparent={true}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Añadir Productos</Text>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setShowProductModal(false);
+                    setSearchQuery('');
+                  }}
+                >
+                  <Ionicons name="close" size={wp(6)} color={colors.text} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.searchContainer}>
+                <View style={styles.searchBar}>
+                  <Ionicons
+                    name="search"
+                    size={wp(5)}
+                    color={colors.textLight}
+                  />
+                  <TextInput
+                    style={styles.searchInput}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder="Buscar productos..."
+                    autoFocus
+                    placeholderTextColor={colors.textMuted}
+                  />
+                  {searchQuery ? (
+                    <TouchableOpacity onPress={() => setSearchQuery('')}>
+                      <Ionicons
+                        name="close-circle"
+                        size={wp(5)}
+                        color={colors.textLight}
+                      />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              </View>
+
+              <FlatList
+                data={filteredProducts}
+                renderItem={renderProductItem}
+                keyExtractor={item => item.id}
+                contentContainerStyle={styles.productsList}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <View style={styles.emptyResults}>
+                    <Text style={styles.emptyResultsText}>
+                      {searchQuery
+                        ? 'No se encontraron productos que coincidan con la búsqueda'
+                        : 'No hay productos disponibles'}
+                    </Text>
+                  </View>
+                }
+              />
+            </View>
+          </View>
+        </Modal>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(2),
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  headerTitle: {
+    fontSize: wp(5),
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  addProductButton: {
+    flexDirection: 'row',
+    backgroundColor: colors.primary,
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(3),
+    borderRadius: dimensions.borderRadiusMedium,
+    alignItems: 'center',
+  },
+  addProductButtonText: {
+    color: colors.white,
+    fontWeight: '600',
+    marginLeft: wp(1),
+    fontSize: wp(3.5),
+  },
+  cartContainer: {
+    flex: 1,
+  },
+  cartContent: {
+    padding: wp(4),
+    paddingBottom: hp(10),
+  },
+  sectionTitle: {
+    fontSize: wp(4.5),
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: hp(2),
+    marginTop: hp(1),
+  },
+  cartItem: {
+    backgroundColor: colors.white,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(4),
+    marginBottom: hp(2),
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: wp(0.5) },
+    shadowOpacity: 0.1,
+    shadowRadius: wp(1),
+    elevation: 2,
+  },
+  cartItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: hp(1.5),
+  },
+  cartItemName: {
+    fontSize: wp(4.2),
+    fontWeight: '600',
+    color: colors.text,
+    flex: 1,
+  },
+  removeButton: {
+    padding: wp(1),
+  },
+  cartItemBody: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  quantityControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderRadius: dimensions.borderRadiusMedium,
+    overflow: 'hidden',
+  },
+  quantityButton: {
+    width: wp(8),
+    height: wp(8),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quantityText: {
+    width: wp(8),
+    textAlign: 'center',
+    fontSize: wp(4),
+    fontWeight: '500',
+    color: colors.text,
+  },
+  priceContainer: {
+    alignItems: 'flex-end',
+  },
+  priceText: {
+    fontSize: wp(3.5),
+    color: colors.textLight,
+    marginBottom: hp(0.5),
+  },
+  subtotalText: {
+    fontSize: wp(4.2),
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  paymentOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: hp(3),
+  },
+  paymentOption: {
+    alignItems: 'center',
+    padding: wp(3),
+    borderRadius: dimensions.borderRadiusMedium,
+    borderWidth: 1,
+    borderColor: colors.border,
+    width: wp(25),
+  },
+  selectedPaymentOption: {
+    borderColor: colors.primary,
+    backgroundColor: `${colors.primary}10`,
+  },
+  paymentOptionText: {
+    fontSize: wp(3.5),
+    color: colors.text,
+    marginTop: hp(0.5),
+  },
+  selectedPaymentOptionText: {
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  notesInput: {
+    backgroundColor: colors.white,
+    borderRadius: dimensions.borderRadiusMedium,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: wp(3),
+    fontSize: wp(3.8),
+    color: colors.text,
+    minHeight: hp(15),
+    marginBottom: hp(3),
+    textAlignVertical: 'top',
+  },
+  saleDetails: {
+    marginTop: hp(2),
+  },
+  summaryContainer: {
+    backgroundColor: colors.white,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(4),
+    marginBottom: hp(2),
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: wp(0.5) },
+    shadowOpacity: 0.1,
+    shadowRadius: wp(1),
+    elevation: 2,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: hp(1),
+  },
+  summaryLabel: {
+    fontSize: wp(3.8),
+    color: colors.textLight,
+  },
+  summaryValue: {
+    fontSize: wp(3.8),
+    color: colors.text,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: hp(1.5),
+    marginTop: hp(1),
+  },
+  totalLabel: {
+    fontSize: wp(4.2),
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  totalValue: {
+    fontSize: wp(4.5),
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  emptyCart: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: wp(4),
+  },
+  emptyCartTitle: {
+    fontSize: wp(5),
+    fontWeight: 'bold',
+    color: colors.text,
+    marginTop: hp(2),
+    marginBottom: hp(1),
+  },
+  emptyCartText: {
+    fontSize: wp(4),
+    color: colors.textLight,
+    textAlign: 'center',
+    marginBottom: hp(3),
+  },
+  emptyCartButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(6),
+    borderRadius: dimensions.borderRadiusMedium,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: wp(0.5) },
+    shadowOpacity: 0.2,
+    shadowRadius: wp(1),
+    elevation: 3,
+  },
+  emptyCartButtonText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: wp(4),
+  },
+  checkoutContainer: {
+    padding: wp(4),
+    backgroundColor: colors.white,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  checkoutButton: {
+    backgroundColor: colors.success,
+    flexDirection: 'row',
+    height: hp(6.5),
+    borderRadius: dimensions.borderRadiusMedium,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: colors.success,
+    shadowOffset: { width: 0, height: wp(0.5) },
+    shadowOpacity: 0.2,
+    shadowRadius: wp(1),
+    elevation: 3,
+  },
+  checkoutButtonDisabled: {
+    backgroundColor: colors.textMuted,
+  },
+  checkoutButtonText: {
+    color: colors.white,
+    fontSize: wp(4.5),
+    fontWeight: '600',
+    marginLeft: wp(2),
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: dimensions.borderRadiusLarge,
+    borderTopRightRadius: dimensions.borderRadiusLarge,
+    height: isTablet() ? '60%' : '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: wp(4),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalTitle: {
+    fontSize: wp(5),
+    fontWeight: '600',
+    color: colors.text,
+  },
+  closeButton: {
+    padding: wp(2),
+  },
+  searchContainer: {
+    padding: wp(4),
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderRadius: dimensions.borderRadiusMedium,
+    paddingHorizontal: wp(3),
+    height: hp(6),
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: wp(2),
+    fontSize: wp(4),
+    color: colors.text,
+  },
+  productsList: {
+    paddingHorizontal: wp(4),
+    paddingBottom: hp(4),
+  },
+  productItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(3),
+    marginBottom: hp(1.5),
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  productInfo: {
+    flex: 1,
+  },
+  productName: {
+    fontSize: wp(4),
+    fontWeight: '500',
+    color: colors.text,
+    marginBottom: hp(0.5),
+  },
+  productSku: {
+    fontSize: wp(3.2),
+    color: colors.textLight,
+    marginBottom: hp(0.8),
+  },
+  productStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  productPrice: {
+    fontSize: wp(3.8),
+    fontWeight: '600',
+    color: colors.primary,
+    marginRight: wp(3),
+  },
+  productStock: {
+    fontSize: wp(3.2),
+    color: colors.textLight,
+  },
+  addButton: {
+    width: wp(9),
+    height: wp(9),
+    borderRadius: wp(4.5),
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: wp(0.5) },
+    shadowOpacity: 0.2,
+    shadowRadius: wp(1),
+    elevation: 2,
+  },
+  emptyResults: {
+    padding: wp(10),
+    alignItems: 'center',
+  },
+  emptyResultsText: {
+    fontSize: wp(4),
+    color: colors.textLight,
+    textAlign: 'center',
+  },
+});
 
 export default SalesScreen;

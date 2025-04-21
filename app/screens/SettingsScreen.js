@@ -10,13 +10,16 @@ import {
   ActivityIndicator,
   TextInput,
   Modal,
+  Dimensions,
+  PixelRatio,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseService';
 import COLLECTIONS from '../constants/collections';
+import { wp, hp, isTablet, dimensions } from '../utils/responsive';
 import colors from '../constants/colors';
 
 const SettingsScreen = () => {
@@ -97,7 +100,7 @@ const SettingsScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Sección de Perfil */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Perfil de Usuario</Text>
@@ -118,7 +121,7 @@ const SettingsScreen = () => {
               style={styles.editButton}
               onPress={() => setShowEditModal(true)}
             >
-              <Ionicons name="pencil" size={18} color={colors.white} />
+              <Ionicons name="pencil" size={wp(4.5)} color={colors.white} />
             </TouchableOpacity>
           </View>
         </View>
@@ -133,7 +136,7 @@ const SettingsScreen = () => {
             <View style={styles.settingLabelContainer}>
               <Ionicons
                 name="notifications-outline"
-                size={22}
+                size={wp(5.5)}
                 color={colors.textLight}
                 style={styles.settingIcon}
               />
@@ -142,7 +145,7 @@ const SettingsScreen = () => {
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: colors.gray, true: colors.primaryLight }}
+              trackColor={{ false: colors.border, true: `${colors.primary}50` }}
               thumbColor={notificationsEnabled ? colors.primary : colors.white}
             />
           </View>
@@ -151,19 +154,22 @@ const SettingsScreen = () => {
             <View style={styles.settingLabelContainer}>
               <Ionicons
                 name="alert-circle-outline"
-                size={22}
+                size={wp(5.5)}
                 color={colors.textLight}
                 style={styles.settingIcon}
               />
               <Text style={styles.settingLabel}>Alerta de stock bajo</Text>
             </View>
-            <TextInput
-              style={styles.thresholdInput}
-              value={lowStockAlertThreshold}
-              onChangeText={setLowStockAlertThreshold}
-              keyboardType="numeric"
-              maxLength={3}
-            />
+            <View style={styles.thresholdInputContainer}>
+              <TextInput
+                style={styles.thresholdInput}
+                value={lowStockAlertThreshold}
+                onChangeText={setLowStockAlertThreshold}
+                keyboardType="numeric"
+                maxLength={3}
+              />
+              <Text style={styles.thresholdLabel}>unidades</Text>
+            </View>
           </View>
         </View>
 
@@ -175,7 +181,7 @@ const SettingsScreen = () => {
             <View style={styles.optionLabelContainer}>
               <Ionicons
                 name="help-circle-outline"
-                size={22}
+                size={wp(5.5)}
                 color={colors.textLight}
                 style={styles.settingIcon}
               />
@@ -183,7 +189,7 @@ const SettingsScreen = () => {
             </View>
             <Ionicons
               name="chevron-forward"
-              size={20}
+              size={wp(5)}
               color={colors.textLight}
             />
           </TouchableOpacity>
@@ -192,7 +198,7 @@ const SettingsScreen = () => {
             <View style={styles.optionLabelContainer}>
               <Ionicons
                 name="document-text-outline"
-                size={22}
+                size={wp(5.5)}
                 color={colors.textLight}
                 style={styles.settingIcon}
               />
@@ -200,7 +206,7 @@ const SettingsScreen = () => {
             </View>
             <Ionicons
               name="chevron-forward"
-              size={20}
+              size={wp(5)}
               color={colors.textLight}
             />
           </TouchableOpacity>
@@ -209,7 +215,7 @@ const SettingsScreen = () => {
             <View style={styles.optionLabelContainer}>
               <Ionicons
                 name="shield-outline"
-                size={22}
+                size={wp(5.5)}
                 color={colors.textLight}
                 style={styles.settingIcon}
               />
@@ -217,7 +223,7 @@ const SettingsScreen = () => {
             </View>
             <Ionicons
               name="chevron-forward"
-              size={20}
+              size={wp(5)}
               color={colors.textLight}
             />
           </TouchableOpacity>
@@ -227,7 +233,7 @@ const SettingsScreen = () => {
         <TouchableOpacity style={styles.logoutButton} onPress={confirmLogout}>
           <Ionicons
             name="log-out-outline"
-            size={22}
+            size={wp(5.5)}
             color={colors.white}
             style={styles.logoutIcon}
           />
@@ -248,7 +254,7 @@ const SettingsScreen = () => {
                 onPress={() => setShowEditModal(false)}
                 style={styles.closeButton}
               >
-                <Ionicons name="close" size={24} color={colors.text} />
+                <Ionicons name="close" size={wp(6)} color={colors.text} />
               </TouchableOpacity>
             </View>
 
@@ -260,6 +266,7 @@ const SettingsScreen = () => {
                   value={name}
                   onChangeText={setName}
                   placeholder="Tu nombre"
+                  placeholderTextColor={colors.textMuted}
                 />
               </View>
 
@@ -270,6 +277,7 @@ const SettingsScreen = () => {
                   value={businessName}
                   onChangeText={setBusinessName}
                   placeholder="Nombre de tu negocio (opcional)"
+                  placeholderTextColor={colors.textMuted}
                 />
               </View>
 
@@ -278,9 +286,11 @@ const SettingsScreen = () => {
                 onPress={saveProfileChanges}
                 disabled={saving}
               >
-                <Text style={styles.saveButtonText}>
-                  {saving ? 'Guardando...' : 'Guardar Cambios'}
-                </Text>
+                {saving ? (
+                  <ActivityIndicator size="small" color={colors.white} />
+                ) : (
+                  <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -297,7 +307,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 16,
+    padding: wp(4),
   },
   loadingContainer: {
     flex: 1,
@@ -306,40 +316,237 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 16,
+    marginTop: hp(1.5),
+    fontSize: wp(4),
     color: colors.textLight,
   },
   section: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderRadius: dimensions.borderRadiusMedium,
+    padding: wp(4),
+    marginBottom: hp(2.5),
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: dimensions.shadowOffsetHeight },
+    shadowOpacity: dimensions.shadowOpacityLight,
+    shadowRadius: dimensions.shadowRadius,
     elevation: 2,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: wp(4.5),
     fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: hp(2),
+  },
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileIconContainer: {
+    width: wp(15),
+    height: wp(15),
+    borderRadius: wp(7.5),
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp(3),
+  },
+  profileIconText: {
+    fontSize: wp(8),
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: wp(4.5),
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: hp(0.5),
+  },
+  profileEmail: {
+    fontSize: wp(3.5),
+    color: colors.textLight,
+    marginBottom: hp(0.5),
+  },
+  businessName: {
+    fontSize: wp(3.5),
+    color: colors.textLight,
+    fontStyle: 'italic',
+  },
+  editButton: {
+    width: wp(10),
+    height: wp(10),
+    borderRadius: wp(5),
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: dimensions.shadowOffsetHeight },
+    shadowOpacity: 0.3,
+    shadowRadius: wp(1),
+    elevation: 3,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: hp(1.5),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  settingLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  settingIcon: {
+    marginRight: wp(3),
+  },
+  settingLabel: {
+    fontSize: wp(4),
+    color: colors.text,
+  },
+  thresholdInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  thresholdInput: {
+    backgroundColor: colors.background,
+    width: wp(15),
+    height: hp(5),
+    borderRadius: dimensions.borderRadiusSmall,
+    paddingHorizontal: wp(2),
+    marginRight: wp(2),
+    textAlign: 'center',
+    fontSize: wp(4),
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  thresholdLabel: {
+    fontSize: wp(3.5),
+    color: colors.textLight,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: hp(1.5),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  optionLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  optionLabel: {
+    fontSize: wp(4),
+    color: colors.text,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.danger,
+    padding: hp(2),
+    borderRadius: dimensions.borderRadiusMedium,
+    marginVertical: hp(2.5),
+    shadowColor: colors.danger,
+    shadowOffset: { width: 0, height: dimensions.shadowOffsetHeight },
+    shadowOpacity: 0.2,
+    shadowRadius: dimensions.shadowRadius,
+    elevation: 2,
+  },
+  logoutText: {
+    fontSize: wp(4.5),
+    fontWeight: 'bold',
+    color: colors.white,
+    marginLeft: wp(2),
+  },
+  logoutIcon: {
+    marginRight: wp(2),
+  },
+  versionText: {
+    textAlign: 'center',
+    fontSize: wp(3.5),
+    color: colors.textLight,
+    marginBottom: hp(2.5),
+  },
+
+  // Estilos para el modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: colors.white,
+    borderRadius: dimensions.borderRadiusMedium,
+    width: isTablet() ? '60%' : '90%',
+    shadowColor: colors.shadowColor,
+    shadowOffset: { width: 0, height: wp(1) },
+    shadowOpacity: 0.2,
+    shadowRadius: wp(2),
+    elevation: 5,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: wp(4),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalTitle: {
+    fontSize: wp(4.5),
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  closeButton: {
+    padding: wp(1),
+  },
+  modalContent: {
+    padding: wp(4),
+  },
+  inputContainer: {
+    marginBottom: hp(2.5),
+  },
+  inputLabel: {
+    fontSize: wp(4),
+    marginBottom: hp(1),
+    color: colors.text,
+    fontWeight: '500',
+  },
+  input: {
+    backgroundColor: colors.background,
+    height: hp(6.5),
+    borderRadius: dimensions.borderRadiusMedium,
+    paddingHorizontal: wp(3),
+    fontSize: wp(4),
+    borderWidth: 1,
+    borderColor: colors.border,
     color: colors.text,
   },
   saveButton: {
     backgroundColor: colors.primary,
-    height: 50,
-    borderRadius: 8,
+    height: hp(6.5),
+    borderRadius: dimensions.borderRadiusMedium,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: hp(2),
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: dimensions.shadowOffsetHeight },
+    shadowOpacity: 0.2,
+    shadowRadius: dimensions.shadowRadius,
+    elevation: 2,
   },
   saveButtonDisabled: {
-    backgroundColor: colors.gray,
+    backgroundColor: colors.textMuted,
   },
   saveButtonText: {
     color: colors.white,
-    fontSize: 16,
+    fontSize: wp(4),
     fontWeight: 'bold',
   },
 });
