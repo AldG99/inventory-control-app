@@ -62,10 +62,13 @@ inventory-control-app/
 4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
 5. Abre un Pull Request
 
-## 👨‍💻 Autor
+## 👨‍💻 Autores
 
 **AldG99**
 - GitHub: [@AldG99](https://github.com/AldG99)
+
+**DaniTr-04**
+- GitHub: [@DaniTr-04](https://github.com/DaniTr-04)
 
 ## 📄 Licencia
 
